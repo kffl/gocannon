@@ -6,6 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/kffl/gocannon/stats"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -64,7 +65,7 @@ func main() {
 
 	wg.Add(n)
 
-	reqs := newRequests(n)
+	reqs := stats.NewRequests(n)
 
 	start := makeTimestamp()
 	stop := start + duration.Nanoseconds()
@@ -79,7 +80,7 @@ func main() {
 				atomic.AddUint64(&ops, 1)
 
 				if code != -1 {
-					reqs[cid] = append(reqs[cid], request{code, start, end})
+					reqs.RecordResponse(cid, code, start, end)
 				}
 			}
 			wg.Done()
@@ -88,30 +89,9 @@ func main() {
 
 	wg.Wait()
 
-	fmt.Printf("Total Req: %8d\n", ops)
-	fmt.Printf("Req/s:     %11.2f\n", float64(ops)/(duration.Seconds()))
+	err = reqs.CalculateStats(start, stop, *interval, *outputFile)
 
-	reqsFlattened := reqs.flatten()
-	reqsFlattened.sort()
-
-	stats, detailedStats := calculateStats(reqsFlattened, start, stop, int64(*interval))
-
-	fmt.Printf("Interval stats: (interval = %v) \n", *interval)
-	stats.printHeader()
-
-	for _, s := range detailedStats {
-		s.print()
-	}
-
-	fmt.Println("----------")
-
-	stats.print()
-
-	if *outputFile != "" {
-		err := reqsFlattened.saveCSV(start)
-		if err != nil {
-			exitWithError(err)
-		}
-		fmt.Printf("Raw request data saved to CSV file: %s\n", *outputFile)
+	if err != nil {
+		exitWithError(err)
 	}
 }

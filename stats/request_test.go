@@ -1,4 +1,4 @@
-package main
+package stats
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewRequests(t *testing.T) {
-	reqs := newRequests(5)
+	reqs := NewRequests(5)
 
 	assert.Len(t, reqs, 5, "should have the specified length")
 	assert.Len(t, reqs[0], 0, "should have empty slices as elements")

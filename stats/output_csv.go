@@ -1,4 +1,4 @@
-package main
+package stats
 
 import (
 	"bufio"
@@ -29,8 +29,8 @@ func (reqs flattenedRequests) writeRawReqData(w *bufio.Writer, start int64) erro
 	return nil
 }
 
-func (reqs flattenedRequests) saveCSV(start int64) error {
-	f, err := os.Create(*outputFile)
+func (reqs flattenedRequests) saveCSV(start int64, outputFile string) error {
+	f, err := os.Create(outputFile)
 	if err != nil {
 		return errors.New("error creating output file")
 	}

@@ -1,4 +1,4 @@
-package main
+package stats
 
 import (
 	"testing"
@@ -70,7 +70,9 @@ func TestCalculateStats(t *testing.T) {
 		{200, 234, 535},
 	}
 
-	summary, detailed := calculateStats(reqs, 100, 600, 100)
+	full := calculateStats(reqs, 100, 600, 100)
+	summary := full.summary
+	detailed := full.detailed
 
 	assert.Equal(t, 5, summary.count)
 	assert.Len(t, detailed, 5, "5 intervals should fit in the specified range")

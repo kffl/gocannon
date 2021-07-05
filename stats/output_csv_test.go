@@ -1,4 +1,4 @@
-package main
+package stats
 
 import (
 	"bufio"
@@ -31,7 +31,7 @@ func TestToCSV(t *testing.T) {
 }
 
 func TestWriteRawReqDataEmpty(t *testing.T) {
-	reqs := newRequests(20)
+	reqs := NewRequests(20)
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 	flattened := reqs.flatten()
@@ -47,7 +47,7 @@ func TestWriteRawReqDataEmpty(t *testing.T) {
 }
 
 func TestWriteRawReqDataPopulated(t *testing.T) {
-	reqs := newRequests(2)
+	reqs := NewRequests(2)
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 

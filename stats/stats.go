@@ -1,7 +1,6 @@
-package main
+package stats
 
 import (
-	"fmt"
 	"sort"
 	"time"
 )
@@ -10,31 +9,39 @@ var percentiles = []float64{50, 75, 90, 99}
 
 type requestLatencies []int64
 
-type stats struct {
+type statistics struct {
 	count              int
 	latencyAVG         float64
 	latencyPercentiles []int64
 }
 
-type intervalStats []stats
+type intervalStatistics []statistics
+
+type fullStatistics struct {
+	summary   statistics
+	detailed  intervalStatistics
+	interval  time.Duration
+	reqCount  int
+	reqPerSec float64
+}
 
 func calculateStats(
 	sortedReqs flattenedRequests,
 	start int64,
 	stop int64,
-	intervalDuration int64,
-) (summary stats, detailed intervalStats) {
+	intervalDuration time.Duration,
+) fullStatistics {
 	summaryStats := calculateIntervalStats(sortedReqs)
 
-	var detailedStats intervalStats
+	var detailedStats intervalStatistics
 
-	for intervalStart := start; intervalStart < stop; intervalStart += intervalDuration {
+	for intervalStart := start; intervalStart < stop; intervalStart += int64(intervalDuration) {
 		startIndex := sort.Search(len(sortedReqs), func(i int) bool {
 			return sortedReqs[i].end >= intervalStart
 		})
 
 		endIndex := sort.Search(len(sortedReqs), func(i int) bool {
-			return sortedReqs[i].end >= intervalStart+intervalDuration
+			return sortedReqs[i].end >= intervalStart+int64(intervalDuration)
 		})
 
 		detailedStats = append(
@@ -43,17 +50,20 @@ func calculateStats(
 		)
 	}
 
-	return summaryStats, detailedStats
+	reqCount := len(sortedReqs)
+	reqPerSec := float64(reqCount) / float64((stop-start)/int64(time.Second))
+
+	return fullStatistics{summaryStats, detailedStats, intervalDuration, reqCount, reqPerSec}
 }
 
-func calculateIntervalStats(reqs flattenedRequests) stats {
+func calculateIntervalStats(reqs flattenedRequests) statistics {
 	latencies := make(requestLatencies, 0, len(reqs))
 
 	for i := 0; i < len(reqs); i++ {
 		latencies = append(latencies, reqs[i].end-reqs[i].start)
 	}
 
-	var r stats
+	var r statistics
 
 	latencies.sort()
 
@@ -65,29 +75,6 @@ func calculateIntervalStats(reqs flattenedRequests) stats {
 	r.latencyAVG = latencies.calculateAVG()
 
 	return r
-}
-
-func (s stats) printHeader() {
-	fmt.Println("|--REQS--|    |------------------------LATENCY-------------------------|")
-	fmt.Println("     Count           AVG         P50         P75         P90         P99")
-}
-
-func formatLatency(latency float64) string {
-	d := time.Duration(latency) * time.Nanosecond
-	return d.String()
-}
-
-func formatLatencyI64(latency int64) string {
-	d := time.Duration(latency) * time.Nanosecond
-	return d.String()
-}
-
-func (s stats) print() {
-	fmt.Printf("%10d %13v", s.count, formatLatency(s.latencyAVG))
-	for _, v := range s.latencyPercentiles {
-		fmt.Printf(" %11v", formatLatencyI64(v))
-	}
-	fmt.Printf("\n")
 }
 
 func (latencies requestLatencies) sort() {

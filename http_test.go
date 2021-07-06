@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -33,24 +32,6 @@ func TestNewHTTPClientCorrectUrl(t *testing.T) {
 
 func TestPerformRequest(t *testing.T) {
 	timeout := time.Millisecond * 100
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello")
-	})
-
-	http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Oooops...")
-	})
-
-	http.HandleFunc("/timeout", func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(time.Millisecond * 200)
-		fmt.Fprintf(w, "Too late...")
-	})
-
-	go func() {
-		http.ListenAndServe(":3000", nil)
-	}()
 
 	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10)
 

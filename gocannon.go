@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"sync/atomic"
 
 	"github.com/kffl/gocannon/stats"
 	"github.com/valyala/fasthttp"
@@ -58,7 +57,6 @@ func main() {
 	if err != nil {
 		exitWithError(err)
 	}
-	var ops uint64
 	var wg sync.WaitGroup
 
 	n := *connections
@@ -77,7 +75,6 @@ func main() {
 				if end >= stop {
 					break
 				}
-				atomic.AddUint64(&ops, 1)
 
 				if code != -1 {
 					reqs.RecordResponse(cid, code, start, end)

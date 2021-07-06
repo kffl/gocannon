@@ -37,7 +37,7 @@ func (reqs *requestLog) CalculateStats(
 	reqsFlat := reqs.flatten()
 	reqsFlat.sort()
 
-	s := calculateStats(reqsFlat, start, stop, interval)
+	s := reqsFlat.calculateStats(start, stop, interval)
 
 	if outputFile != "" {
 		return s, reqsFlat.saveCSV(start, outputFile)

@@ -38,7 +38,7 @@ func TestSort(t *testing.T) {
 func TestCalculateIntervalStatsEmpty(t *testing.T) {
 	reqs := flatRequestLog{}
 
-	stats := calculateIntervalStats(reqs)
+	stats := reqs.calculateIntervalStats()
 
 	assert.Equal(t, 0, stats.count)
 	assert.Equal(t, float64(-1), stats.latencyAVG)
@@ -54,7 +54,7 @@ func TestCalculateIntervalStatsPopulated(t *testing.T) {
 		{200, 534, 535},
 	}
 
-	stats := calculateIntervalStats(reqs)
+	stats := reqs.calculateIntervalStats()
 
 	assert.Equal(t, 5, stats.count)
 	assert.Equal(t, float64(40.6), stats.latencyAVG)
@@ -70,7 +70,7 @@ func TestCalculateStats(t *testing.T) {
 		{200, 234, 535},
 	}
 
-	full := calculateStats(reqs, 100, 600, 100)
+	full := reqs.calculateStats(100, 600, 100)
 	summary := full.summary
 	detailed := full.detailed
 

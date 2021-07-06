@@ -25,42 +25,43 @@ type fullStatistics struct {
 	reqPerSec float64
 }
 
-func calculateStats(
-	sortedReqs flatRequestLog,
+func (sortedReqs *flatRequestLog) calculateStats(
 	start int64,
 	stop int64,
 	intervalDuration time.Duration,
 ) fullStatistics {
-	summaryStats := calculateIntervalStats(sortedReqs)
+	summaryStats := sortedReqs.calculateIntervalStats()
 
 	var detailedStats intervalStatistics
 
 	for intervalStart := start; intervalStart < stop; intervalStart += int64(intervalDuration) {
-		startIndex := sort.Search(len(sortedReqs), func(i int) bool {
-			return sortedReqs[i].end >= intervalStart
+		startIndex := sort.Search(len(*sortedReqs), func(i int) bool {
+			return (*sortedReqs)[i].end >= intervalStart
 		})
 
-		endIndex := sort.Search(len(sortedReqs), func(i int) bool {
-			return sortedReqs[i].end >= intervalStart+int64(intervalDuration)
+		endIndex := sort.Search(len(*sortedReqs), func(i int) bool {
+			return (*sortedReqs)[i].end >= intervalStart+int64(intervalDuration)
 		})
+
+		slicedRequests := (*sortedReqs)[startIndex:endIndex]
 
 		detailedStats = append(
 			detailedStats,
-			calculateIntervalStats(sortedReqs[startIndex:endIndex]),
+			slicedRequests.calculateIntervalStats(),
 		)
 	}
 
-	reqCount := len(sortedReqs)
+	reqCount := len(*sortedReqs)
 	reqPerSec := float64(reqCount) / float64((stop-start)/int64(time.Second))
 
 	return fullStatistics{summaryStats, detailedStats, intervalDuration, reqCount, reqPerSec}
 }
 
-func calculateIntervalStats(reqs flatRequestLog) statistics {
-	latencies := make(requestLatencies, 0, len(reqs))
+func (sortedReqs *flatRequestLog) calculateIntervalStats() statistics {
+	latencies := make(requestLatencies, 0, len(*sortedReqs))
 
-	for i := 0; i < len(reqs); i++ {
-		latencies = append(latencies, reqs[i].end-reqs[i].start)
+	for i := 0; i < len(*sortedReqs); i++ {
+		latencies = append(latencies, (*sortedReqs)[i].end-(*sortedReqs)[i].start)
 	}
 
 	var r statistics

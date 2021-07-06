@@ -8,14 +8,16 @@ Gocannon is a lightweight HTTP benchmarking tool, intended to measure changes in
 usage: gocannon [<flags>] <target>
 
 Flags:
-      --help             Show context-sensitive help (also try --help-long and
-                         --help-man).
-  -d, --duration=10s     Load test duration
-  -c, --connections=50   Maximum number of concurrent connections
-  -t, --timeout=200ms    HTTP client timeout
-  -o, --output=file.csv  File to save the CSV output (raw req data)
-  -i, --interval=250ms   Interval for statistics calculation
-      --version          Show application version.
+      --help              Show context-sensitive help (also try --help-long and
+                          --help-man).
+  -d, --duration=10s      Load test duration
+  -c, --connections=50    Maximum number of concurrent connections
+  -t, --timeout=200ms     HTTP client timeout
+  -o, --output=file.csv   File to save the CSV output (raw req data)
+  -i, --interval=250ms    Interval for statistics calculation
+      --preallocate=1000  Number of requests in log to preallocate memory for per
+                          connection
+      --version           Show application version.
 
 Args:
   <target>  HTTP target URL
@@ -48,6 +50,8 @@ Interval stats: (interval = 250ms)
      14990    9.986321ms  8.540818ms 11.252258ms 15.309979ms 19.632593ms
 ```
 
+### Saving request log to a CSV file
+
 When used with the `--output=filename.csv` flag, raw request data (which includes the request HTTP code, starting timestamp and response timestamp both in nanoseconds since the beginning of the test) can be written into the specified csv file in the following format:
 
 ```
@@ -58,3 +62,7 @@ code;start;end;
 200;841397;37319812;
 [...]
 ```
+
+### Preallocating memory for request log
+
+Gocannon stores data of each completed request in a slice (one per each connection). If a given slice runs out of its initial capacity, the underlying array is re-allocated to a newly selected memory address with double the capacity. In order to minimize the performance impact of slice resizing during the load test, you can specify the number of requests in log per connection to preallocate memory for using the `--preallocate` flag.

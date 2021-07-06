@@ -1,4 +1,4 @@
-package stats
+package reqlog
 
 import (
 	"testing"
@@ -36,7 +36,7 @@ func TestSort(t *testing.T) {
 }
 
 func TestCalculateIntervalStatsEmpty(t *testing.T) {
-	reqs := flattenedRequests{}
+	reqs := flatRequestLog{}
 
 	stats := calculateIntervalStats(reqs)
 
@@ -46,7 +46,7 @@ func TestCalculateIntervalStatsEmpty(t *testing.T) {
 }
 
 func TestCalculateIntervalStatsPopulated(t *testing.T) {
-	reqs := flattenedRequests{
+	reqs := flatRequestLog{
 		{200, 123, 223},
 		{200, 123, 223},
 		{200, 234, 235},
@@ -62,7 +62,7 @@ func TestCalculateIntervalStatsPopulated(t *testing.T) {
 }
 
 func TestCalculateStats(t *testing.T) {
-	reqs := flattenedRequests{
+	reqs := flatRequestLog{
 		{200, 123, 223},
 		{200, 123, 223},
 		{200, 234, 235},

@@ -1,4 +1,4 @@
-package stats
+package reqlog
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func TestNewRequests(t *testing.T) {
 }
 
 func TestRequestSort(t *testing.T) {
-	reqs := flattenedRequests{
+	reqs := flatRequestLog{
 		{200, 123, 223},
 		{200, 123, 223},
 		{200, 234, 235},

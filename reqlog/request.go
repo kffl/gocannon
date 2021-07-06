@@ -1,4 +1,4 @@
-package stats
+package reqlog
 
 import (
 	"sort"
@@ -11,12 +11,12 @@ type request struct {
 	end   int64
 }
 
-type requests [][]request
+type requestLog [][]request
 
-type flattenedRequests []request
+type flatRequestLog []request
 
-func NewRequests(n int, preallocate int) requests {
-	reqs := make(requests, n)
+func NewRequests(n int, preallocate int) requestLog {
+	reqs := make(requestLog, n)
 	for i := 0; i < n; i++ {
 		reqs[i] = make([]request, 0, preallocate)
 	}
@@ -24,11 +24,11 @@ func NewRequests(n int, preallocate int) requests {
 	return reqs
 }
 
-func (reqs *requests) RecordResponse(conn int, code int, start int64, end int64) {
+func (reqs *requestLog) RecordResponse(conn int, code int, start int64, end int64) {
 	(*reqs)[conn] = append((*reqs)[conn], request{code, start, end})
 }
 
-func (reqs *requests) CalculateStats(
+func (reqs *requestLog) CalculateStats(
 	start int64,
 	stop int64,
 	interval time.Duration,
@@ -46,8 +46,8 @@ func (reqs *requests) CalculateStats(
 	return s, nil
 }
 
-func (reqs requests) flatten() flattenedRequests {
-	flattened := make(flattenedRequests, 0, 50000)
+func (reqs requestLog) flatten() flatRequestLog {
+	flattened := make(flatRequestLog, 0, 50000)
 
 	for i := 0; i < len(reqs); i++ {
 		flattened = append(flattened, reqs[i]...)
@@ -56,7 +56,7 @@ func (reqs requests) flatten() flattenedRequests {
 	return flattened
 }
 
-func (reqs flattenedRequests) sort() {
+func (reqs flatRequestLog) sort() {
 	sort.Slice(reqs, func(x, y int) bool {
 		return reqs[x].end < reqs[y].end
 	})

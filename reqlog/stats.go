@@ -1,4 +1,4 @@
-package stats
+package reqlog
 
 import (
 	"sort"
@@ -26,7 +26,7 @@ type fullStatistics struct {
 }
 
 func calculateStats(
-	sortedReqs flattenedRequests,
+	sortedReqs flatRequestLog,
 	start int64,
 	stop int64,
 	intervalDuration time.Duration,
@@ -56,7 +56,7 @@ func calculateStats(
 	return fullStatistics{summaryStats, detailedStats, intervalDuration, reqCount, reqPerSec}
 }
 
-func calculateIntervalStats(reqs flattenedRequests) statistics {
+func calculateIntervalStats(reqs flatRequestLog) statistics {
 	latencies := make(requestLatencies, 0, len(reqs))
 
 	for i := 0; i < len(reqs); i++ {

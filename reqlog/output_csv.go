@@ -1,4 +1,4 @@
-package stats
+package reqlog
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ func (r request) toCSV(start int64) string {
 	return fmt.Sprintf("%v;%v;%v;\n", r.code, r.start-start, r.end-start)
 }
 
-func (reqs flattenedRequests) writeRawReqData(w *bufio.Writer, start int64) error {
+func (reqs flatRequestLog) writeRawReqData(w *bufio.Writer, start int64) error {
 	_, err := fmt.Fprintf(w, "code;start;end;\n")
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func (reqs flattenedRequests) writeRawReqData(w *bufio.Writer, start int64) erro
 	return nil
 }
 
-func (reqs flattenedRequests) saveCSV(start int64, outputFile string) error {
+func (reqs flatRequestLog) saveCSV(start int64, outputFile string) error {
 	f, err := os.Create(outputFile)
 	if err != nil {
 		return errors.New("error creating output file")

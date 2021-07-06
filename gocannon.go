@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/kffl/gocannon/stats"
+	"github.com/kffl/gocannon/reqlog"
 	"github.com/valyala/fasthttp"
 )
 
@@ -28,7 +28,7 @@ func main() {
 
 	wg.Add(n)
 
-	reqs := stats.NewRequests(n, *preallocate)
+	reqLog := reqlog.NewRequests(n, *preallocate)
 
 	start := makeTimestamp()
 	stop := start + duration.Nanoseconds()
@@ -42,7 +42,7 @@ func main() {
 				}
 
 				if code != -1 {
-					reqs.RecordResponse(cid, code, start, end)
+					reqLog.RecordResponse(cid, code, start, end)
 				}
 			}
 			wg.Done()
@@ -51,7 +51,7 @@ func main() {
 
 	wg.Wait()
 
-	stats, err := reqs.CalculateStats(start, stop, *interval, *outputFile)
+	stats, err := reqLog.CalculateStats(start, stop, *interval, *outputFile)
 	stats.Print()
 
 	if err != nil {

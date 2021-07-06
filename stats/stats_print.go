@@ -20,7 +20,7 @@ func formatLatencyI64(latency int64) string {
 	return d.String()
 }
 
-func (s statistics) print() {
+func (s *statistics) print() {
 	fmt.Printf("%10d %13v", s.count, formatLatency(s.latencyAVG))
 	for _, v := range s.latencyPercentiles {
 		fmt.Printf(" %11v", formatLatencyI64(v))
@@ -28,7 +28,7 @@ func (s statistics) print() {
 	fmt.Printf("\n")
 }
 
-func (s fullStatistics) print() {
+func (s *fullStatistics) Print() {
 	fmt.Printf("Total Req: %8d\n", s.reqCount)
 	fmt.Printf("Req/s:     %11.2f\n", s.reqPerSec)
 
@@ -42,4 +42,8 @@ func (s fullStatistics) print() {
 	fmt.Println("----------")
 
 	s.summary.print()
+}
+
+func (s *fullStatistics) GetReqCount() int {
+	return s.reqCount
 }

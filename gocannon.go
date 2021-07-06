@@ -89,7 +89,8 @@ func main() {
 
 	wg.Wait()
 
-	err = reqs.CalculateStats(start, stop, *interval, *outputFile)
+	stats, err := reqs.CalculateStats(start, stop, *interval, *outputFile)
+	stats.Print()
 
 	if err != nil {
 		exitWithError(err)

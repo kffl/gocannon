@@ -24,26 +24,26 @@ func NewRequests(n int) requests {
 	return reqs
 }
 
-func (reqs requests) RecordResponse(conn int, code int, start int64, end int64) {
-	reqs[conn] = append(reqs[conn], request{code, start, end})
+func (reqs *requests) RecordResponse(conn int, code int, start int64, end int64) {
+	(*reqs)[conn] = append((*reqs)[conn], request{code, start, end})
 }
 
-func (reqs requests) CalculateStats(
+func (reqs *requests) CalculateStats(
 	start int64,
 	stop int64,
 	interval time.Duration,
 	outputFile string,
-) error {
+) (fullStatistics, error) {
 	reqsFlat := reqs.flatten()
 	reqsFlat.sort()
 
-	fullStats := calculateStats(reqsFlat, start, stop, interval)
-	fullStats.print()
+	s := calculateStats(reqsFlat, start, stop, interval)
 
 	if outputFile != "" {
-		return reqsFlat.saveCSV(start, outputFile)
+		return s, reqsFlat.saveCSV(start, outputFile)
 	}
-	return nil
+
+	return s, nil
 }
 
 func (reqs requests) flatten() flattenedRequests {

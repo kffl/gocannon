@@ -15,10 +15,10 @@ type requests [][]request
 
 type flattenedRequests []request
 
-func NewRequests(n int) requests {
+func NewRequests(n int, preallocate int) requests {
 	reqs := make(requests, n)
 	for i := 0; i < n; i++ {
-		reqs[i] = make([]request, 0, 1000)
+		reqs[i] = make([]request, 0, preallocate)
 	}
 
 	return reqs

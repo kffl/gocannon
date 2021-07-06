@@ -24,7 +24,7 @@ func TestGocannon(t *testing.T) {
 
 	wg.Add(conns)
 
-	reqs := stats.NewRequests(conns)
+	reqs := stats.NewRequests(conns, 1000)
 
 	start := makeTimestamp()
 	stop := start + duration.Nanoseconds()

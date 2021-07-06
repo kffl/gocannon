@@ -27,6 +27,9 @@ var (
 			Default("250ms").
 			Short('i').
 			Duration()
+	preallocate = kingpin.Flag("preallocate", "Number of requests in log to preallocate memory for per connection").
+			Default("1000").
+			Int()
 	target = kingpin.Arg("target", "HTTP target URL").Required().String()
 )
 

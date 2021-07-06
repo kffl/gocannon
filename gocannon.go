@@ -28,7 +28,7 @@ func main() {
 
 	wg.Add(n)
 
-	reqs := stats.NewRequests(n)
+	reqs := stats.NewRequests(n, *preallocate)
 
 	start := makeTimestamp()
 	stop := start + duration.Nanoseconds()

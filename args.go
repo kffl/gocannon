@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -19,15 +17,19 @@ var (
 		Short('t').
 		Default("200ms").
 		Duration()
-	outputFile = kingpin.Flag("output", "File to save the CSV output (raw req data)").
+	mode = kingpin.Flag("mode", "Statistics collection mode: reqlog (logs each request) or hist (stores histogram of completed requests latencies)").
+		Default("reqlog").
+		Short('m').
+		String()
+	outputFile = kingpin.Flag("output", "File to save the request log in CSV format (reqlog mode) or a text file with raw histogram data (hist mode)").
 			PlaceHolder("file.csv").
 			Short('o').
 			String()
-	interval = kingpin.Flag("interval", "Interval for statistics calculation").
+	interval = kingpin.Flag("interval", "Interval for statistics calculation (reqlog mode)").
 			Default("250ms").
 			Short('i').
 			Duration()
-	preallocate = kingpin.Flag("preallocate", "Number of requests in log to preallocate memory for per connection").
+	preallocate = kingpin.Flag("preallocate", "Number of requests in req log to preallocate memory for per connection (reqlog mode)").
 			Default("1000").
 			Int()
 	target = kingpin.Arg("target", "HTTP target URL").Required().String()
@@ -36,9 +38,4 @@ var (
 func parseArgs() {
 	kingpin.Version("0.0.1")
 	kingpin.Parse()
-}
-
-func printHeader() {
-	fmt.Printf("Attacking %s with %d connections over %s\n", *target, *connections, *duration)
-	fmt.Printf("gocannon goes brr...\n")
 }

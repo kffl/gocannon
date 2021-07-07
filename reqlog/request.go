@@ -15,7 +15,14 @@ type requestLog [][]request
 
 type flatRequestLog []request
 
-func NewRequests(n int, preallocate int) requestLog {
+type requestLogCollector struct {
+	reqLog         *requestLog
+	flatLog        *flatRequestLog
+	results        *fullStatistics
+	startTimestamp int64
+}
+
+func newRequests(n int, preallocate int) requestLog {
 	reqs := make(requestLog, n)
 	for i := 0; i < n; i++ {
 		reqs[i] = make([]request, 0, preallocate)
@@ -24,26 +31,61 @@ func NewRequests(n int, preallocate int) requestLog {
 	return reqs
 }
 
-func (reqs *requestLog) RecordResponse(conn int, code int, start int64, end int64) {
-	(*reqs)[conn] = append((*reqs)[conn], request{code, start, end})
+func NewRequestLog(n int, preallocate int) *requestLogCollector {
+	reqs := newRequests(n, preallocate)
+
+	logCollector := requestLogCollector{}
+
+	logCollector.reqLog = &reqs
+
+	return &logCollector
 }
 
-func (reqs *requestLog) CalculateStats(
+func (r *requestLogCollector) RecordResponse(conn int, code int, start int64, end int64) {
+	(*r.reqLog)[conn] = append((*r.reqLog)[conn], request{code, start, end})
+}
+
+func (r *requestLogCollector) CalculateStats(
 	start int64,
 	stop int64,
 	interval time.Duration,
-	outputFile string,
-) (fullStatistics, error) {
-	reqsFlat := reqs.flatten()
+) {
+	r.startTimestamp = start
+	reqsFlat := r.reqLog.flatten()
 	reqsFlat.sort()
 
-	s := reqsFlat.calculateStats(start, stop, interval)
+	results := reqsFlat.calculateStats(start, stop, interval)
+	r.results = &results
 
+	// keep the flattened, sorted request log in case the output is to be saved
+	r.flatLog = &reqsFlat
+	// while releasing the connection-paritioned one to the GC
+	*(r.reqLog) = nil
+
+}
+
+func (r *requestLogCollector) PrintReport() {
+	r.results.print()
+}
+
+func (r *requestLogCollector) SaveRawData(outputFile string) error {
 	if outputFile != "" {
-		return s, reqsFlat.saveCSV(start, outputFile)
+		return r.flatLog.saveCSV(r.startTimestamp, outputFile)
 	}
+	return nil
 
-	return s, nil
+}
+
+func (r *requestLogCollector) GetReqCount() int64 {
+	return r.results.reqCount
+}
+
+func (r *requestLogCollector) GetReqPerSec() float64 {
+	return r.results.reqPerSec
+}
+
+func (r *requestLogCollector) GetLatencyAvg() float64 {
+	return r.results.summary.latencyAVG
 }
 
 func (reqs requestLog) flatten() flatRequestLog {

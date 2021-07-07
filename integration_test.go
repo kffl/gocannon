@@ -1,12 +1,12 @@
 package main
 
 import (
+	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/kffl/gocannon/reqlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
@@ -15,7 +15,7 @@ func TestGocannon(t *testing.T) {
 
 	target := "http://localhost:3000/hello"
 	timeout := time.Duration(200) * time.Millisecond
-	duration := time.Duration(1) * time.Second
+	duration := time.Duration(3) * time.Second
 	conns := 50
 
 	c, err := newHTTPClient(target, timeout, conns)
@@ -25,7 +25,8 @@ func TestGocannon(t *testing.T) {
 
 	wg.Add(conns)
 
-	reqLog := reqlog.NewRequests(conns, 1000)
+	reqStats, _ := newStatsCollector("reqlog", conns, 1000, timeout)
+	histStats, _ := newStatsCollector("hist", conns, 1000, timeout)
 
 	start := makeTimestamp()
 	stop := start + duration.Nanoseconds()
@@ -37,10 +38,11 @@ func TestGocannon(t *testing.T) {
 				if end >= stop {
 					break
 				}
-				atomic.AddInt32(&ops, 1)
 
 				if code != -1 {
-					reqLog.RecordResponse(cid, code, start, end)
+					atomic.AddInt32(&ops, 1)
+					reqStats.RecordResponse(cid, code, start, end)
+					histStats.RecordResponse(cid, code, start, end)
 				}
 			}
 			wg.Done()
@@ -49,15 +51,39 @@ func TestGocannon(t *testing.T) {
 
 	wg.Wait()
 
-	stats, saveErr := reqLog.CalculateStats(start, stop, time.Duration(250)*time.Millisecond, "")
+	reqStats.CalculateStats(start, stop, time.Duration(250)*time.Millisecond)
+	histStats.CalculateStats(start, stop, time.Duration(250)*time.Millisecond)
 
 	assert.Nil(t, err, "the http client should be created without an error")
-	assert.Nil(t, saveErr, "the save error should be nil")
 	assert.Equal(
 		t,
-		int(ops),
-		stats.GetReqCount(),
-		"request count calculated by stats and by atomic counter should be equal",
+		int64(ops),
+		reqStats.GetReqCount(),
+		"request count calculated by reqlog and by atomic counter should be equal",
 	)
-	assert.Greater(t, stats.GetReqCount(), 1000, "should send over 1k requests in one second")
+	assert.Equal(
+		t,
+		int64(ops),
+		histStats.GetReqCount(),
+		"request count calculated by hist and by atomic counter should be equal",
+	)
+	assert.Equal(
+		t,
+		reqStats.GetReqPerSec(),
+		histStats.GetReqPerSec(),
+		"requests per second calculated by reqlog and by hist should be equal",
+	)
+	deltaL := math.Abs(reqStats.GetLatencyAvg() - histStats.GetLatencyAvg())
+	assert.LessOrEqual(
+		t,
+		deltaL,
+		float64(2),
+		"average latencies calculated by reqlog and hist should be within the error margin",
+	)
+	assert.Greater(
+		t,
+		reqStats.GetReqCount(),
+		int64(8000),
+		"should send over 8k requests in 3 seconds",
+	)
 }

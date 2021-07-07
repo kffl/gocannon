@@ -21,7 +21,7 @@ type fullStatistics struct {
 	summary   statistics
 	detailed  intervalStatistics
 	interval  time.Duration
-	reqCount  int
+	reqCount  int64
 	reqPerSec float64
 }
 
@@ -51,7 +51,7 @@ func (sortedReqs *flatRequestLog) calculateStats(
 		)
 	}
 
-	reqCount := len(*sortedReqs)
+	reqCount := int64(len(*sortedReqs))
 	reqPerSec := float64(reqCount) / float64((stop-start)/int64(time.Second))
 
 	return fullStatistics{summaryStats, detailedStats, intervalDuration, reqCount, reqPerSec}

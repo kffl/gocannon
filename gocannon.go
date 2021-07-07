@@ -5,7 +5,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/kffl/gocannon/reqlog"
 	"github.com/valyala/fasthttp"
 )
 
@@ -19,16 +18,22 @@ func main() {
 	printHeader()
 
 	c, err := newHTTPClient(*target, *timeout, *connections)
+
 	if err != nil {
 		exitWithError(err)
 	}
-	var wg sync.WaitGroup
 
 	n := *connections
 
-	wg.Add(n)
+	stats, scErr := newStatsCollector(*mode, n, *preallocate, *timeout)
 
-	reqLog := reqlog.NewRequests(n, *preallocate)
+	if scErr != nil {
+		exitWithError(scErr)
+	}
+
+	var wg sync.WaitGroup
+
+	wg.Add(n)
 
 	start := makeTimestamp()
 	stop := start + duration.Nanoseconds()
@@ -42,7 +47,7 @@ func main() {
 				}
 
 				if code != -1 {
-					reqLog.RecordResponse(cid, code, start, end)
+					stats.RecordResponse(cid, code, start, end)
 				}
 			}
 			wg.Done()
@@ -51,10 +56,15 @@ func main() {
 
 	wg.Wait()
 
-	stats, err := reqLog.CalculateStats(start, stop, *interval, *outputFile)
-	stats.Print()
+	stats.CalculateStats(start, stop, *interval)
 
-	if err != nil {
-		exitWithError(err)
+	printSummary(stats)
+	stats.PrintReport()
+
+	if *outputFile != "" {
+		err = stats.SaveRawData(*outputFile)
+		if err != nil {
+			exitWithError(err)
+		}
 	}
 }

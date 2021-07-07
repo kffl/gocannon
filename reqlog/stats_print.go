@@ -28,10 +28,7 @@ func (s *statistics) print() {
 	fmt.Printf("\n")
 }
 
-func (s *fullStatistics) Print() {
-	fmt.Printf("Total Req: %8d\n", s.reqCount)
-	fmt.Printf("Req/s:     %11.2f\n", s.reqPerSec)
-
+func (s *fullStatistics) print() {
 	fmt.Printf("Interval stats: (interval = %v) \n", s.interval)
 	printStatsHeader()
 
@@ -44,6 +41,6 @@ func (s *fullStatistics) Print() {
 	s.summary.print()
 }
 
-func (s *fullStatistics) GetReqCount() int {
+func (s *fullStatistics) GetReqCount() int64 {
 	return s.reqCount
 }

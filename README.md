@@ -13,10 +13,13 @@ Flags:
   -d, --duration=10s      Load test duration
   -c, --connections=50    Maximum number of concurrent connections
   -t, --timeout=200ms     HTTP client timeout
-  -o, --output=file.csv   File to save the CSV output (raw req data)
-  -i, --interval=250ms    Interval for statistics calculation
-      --preallocate=1000  Number of requests in log to preallocate memory for per
-                          connection
+  -m, --mode="reqlog"     Statistics collection mode: reqlog (logs each request) or hist
+                          (stores histogram of completed requests latencies)
+  -o, --output=file.csv   File to save the request log in CSV format (reqlog mode) or a
+                          text file with raw histogram data (hist mode)
+  -i, --interval=250ms    Interval for statistics calculation (reqlog mode)
+      --preallocate=1000  Number of requests in req log to preallocate memory for per
+                          connection (reqlog mode)
       --version           Show application version.
 
 Args:
@@ -66,3 +69,32 @@ code;start;end;
 ### Preallocating memory for request log
 
 Gocannon stores data of each completed request in a slice (one per each connection). If a given slice runs out of its initial capacity, the underlying array is re-allocated to a newly selected memory address with double the capacity. In order to minimize the performance impact of slice resizing during the load test, you can specify the number of requests in log per connection to preallocate memory for using the `--preallocate` flag.
+
+### Histogram mode
+
+There are some use cases in which request log mode is not desirable. If you don't need a detailed log of each request that was completed during the load test, you can use histogram mode using the `--mode=hist` flag. When using histogram mode, upon each completed request, gocannon will only save its latency in a histogram (in a manner similar to how wrk or bombardier does that). That way, memory usage of the stats collector will remain constant over the entire duration of the load test. This results in gocannon having a total memory footprint of about 3MB when conducting a load test in histogram mode (when the timeout is set to a default 200ms).
+
+Below is an example of a load test conducted with gocannon in histogram mode:
+
+```
+> gocannon http://localhost:3000/static --duration=2m --mode=hist
+Attacking http://localhost:3000/static with 50 connections over 2m0s
+gocannon goes brr...
+Total Req:  13715707
+Req/s:        114297.56
+|------------------------LATENCY (μs)-----------------------|
+          AVG         P50         P75         P90         P99
+       436.45         278         508         925        2681
+```
+
+Similarly to saving CSV output in request log mode, you can write the histogram data to a text file using the `--output=filename` flag. The output contains the number of hits in each latency histogram bin (having width of 1μs) truncated up until the last non-zero value:
+
+```
+0
+0
+1
+1
+15
+45
+[...]
+```

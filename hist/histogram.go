@@ -69,6 +69,12 @@ func (h *requestHist) SaveRawData(fileName string) error {
 
 	writer := bufio.NewWriter(f)
 
+	err = h.writeHistData(writer)
+
+	if err != nil {
+		return err
+	}
+
 	err = writer.Flush()
 
 	return err

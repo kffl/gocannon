@@ -13,14 +13,12 @@ func exitWithError(err error) {
 	os.Exit(1)
 }
 
-func main() {
-	parseArgs()
-	printHeader()
+func runGocannon() error {
 
 	c, err := newHTTPClient(*target, *timeout, *connections)
 
 	if err != nil {
-		exitWithError(err)
+		return err
 	}
 
 	n := *connections
@@ -28,7 +26,7 @@ func main() {
 	stats, scErr := newStatsCollector(*mode, n, *preallocate, *timeout)
 
 	if scErr != nil {
-		exitWithError(scErr)
+		return scErr
 	}
 
 	var wg sync.WaitGroup
@@ -64,7 +62,20 @@ func main() {
 	if *outputFile != "" {
 		err = stats.SaveRawData(*outputFile)
 		if err != nil {
-			exitWithError(err)
+			return err
 		}
+	}
+
+	return nil
+}
+
+func main() {
+	parseArgs()
+	printHeader()
+
+	err := runGocannon()
+
+	if err != nil {
+		exitWithError(err)
 	}
 }

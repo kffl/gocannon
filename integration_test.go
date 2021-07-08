@@ -87,3 +87,16 @@ func TestGocannon(t *testing.T) {
 		"should send over 8k requests in 3 seconds",
 	)
 }
+
+func TestGocannonDefaultValues(t *testing.T) {
+	*duration = time.Second * 1
+	*connections = 50
+	*timeout = time.Millisecond * 200
+	*mode = "reqlog"
+	*outputFile = ""
+	*interval = time.Millisecond * 250
+	*preallocate = 1000
+	*target = "http://localhost:3000/hello"
+
+	assert.Nil(t, runGocannon(), "the load test should be completed without errors")
+}

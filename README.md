@@ -58,16 +58,18 @@ Requests ended with timeout/socket error: 1
 
 ### Saving request log to a CSV file
 
-When used with the `--output=filename.csv` flag, raw request data (which includes the request HTTP code, starting timestamp and response timestamp both in nanoseconds since the beginning of the test) can be written into the specified csv file in the following format:
+When used with the `--output=filename.csv` flag, raw request data (which includes the request HTTP code, starting timestamp, response timestamp both in nanoseconds since the beginning of the test as well as the ID of the connection which was used for that request) can be written into the specified csv file in the following format:
 
 ```
-code;start;end;
-200;509761;30592963;
-200;694043;34837869;
-200;963463;36094909;
-200;841397;37319812;
+code;start;end;connection;
+200;509761;30592963;0;
+200;694043;34837869;0;
+200;963463;36094909;0;
+200;841397;37319812;0;
 [...]
 ```
+
+In the CSV output file, the requests are sorted primarily by connection ID and secondarily by response timestamp (`end` column).
 
 ### Preallocating memory for request log
 

@@ -51,6 +51,9 @@ Interval stats: (interval = 250ms)
       1579    7.901125ms  7.525814ms  7.655212ms  9.577895ms 10.203331ms
 ----------
      14990    9.986321ms  8.540818ms 11.252258ms 15.309979ms 19.632593ms
+Responses by HTTP status code:
+  200  ->  14990
+Requests ended with timeout/socket error: 1
 ```
 
 ### Saving request log to a CSV file
@@ -85,6 +88,8 @@ Req/s:        114297.56
 |------------------------LATENCY (μs)-----------------------|
           AVG         P50         P75         P90         P99
        436.45         278         508         925        2681
+Responses by HTTP status code:
+  200  ->  13715707
 ```
 
 Similarly to saving CSV output in request log mode, you can write the histogram data to a text file using the `--output=filename` flag. The output contains the number of hits in each latency histogram bin (having width of 1μs) truncated up until the last non-zero value:

@@ -41,5 +41,5 @@ func TestPerformRequest(t *testing.T) {
 
 	assert.Equal(t, 200, codeOk)
 	assert.Equal(t, http.StatusInternalServerError, codeISE)
-	assert.Equal(t, -1, codeTimeout)
+	assert.Equal(t, 0, codeTimeout)
 }

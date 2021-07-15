@@ -53,7 +53,7 @@ func performRequest(c *fasthttp.HostClient, target string) (
 	start = makeTimestamp()
 	err := c.Do(req, resp)
 	if err != nil {
-		code = -1
+		code = 0
 	} else {
 		code = resp.StatusCode()
 	}

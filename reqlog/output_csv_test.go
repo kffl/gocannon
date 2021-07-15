@@ -8,60 +8,53 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	header = "code;start;end;\n"
-)
-
 func TestToCSV(t *testing.T) {
 	cases := []request{
 		{200, 123001, 123007},
 		{404, 220000, 220001},
-		{-1, 123000, 124000},
+		{0, 123000, 124000},
 	}
 
 	results := []string{
-		"200;1;7;\n",
-		"404;97000;97001;\n",
-		"-1;0;1000;\n",
+		"200;1;7;0;\n",
+		"404;97000;97001;1;\n",
+		"0;0;1000;2;\n",
 	}
 
 	for i := range cases {
-		assert.Equal(t, results[i], cases[i].toCSV(123000))
+		assert.Equal(t, results[i], cases[i].toCSV(123000, i))
 	}
 }
 
 func TestWriteRawReqDataEmpty(t *testing.T) {
-	reqs := newRequests(20, 1000)
+	reqs := make(flatRequestLog, 0)
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
-	flattened := reqs.flatten()
 
-	flattened.writeRawReqData(w, 0)
+	reqs.writeRawReqData(w, 0, 0)
 
 	assert.Equal(
 		t,
-		header,
+		"",
 		b.String(),
-		"only the header should be written if there are no requests",
+		"no output should be written if the request log for a given connection is empty",
 	)
 }
 
 func TestWriteRawReqDataPopulated(t *testing.T) {
-	reqs := newRequests(2, 1000)
+	reqs := make(flatRequestLog, 0)
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 
-	reqs[0] = append(reqs[0], request{200, 123001, 123007})
-	reqs[1] = append(reqs[1], request{-1, 10000, 11000})
+	reqs = append(reqs, request{200, 123001, 123007})
+	reqs = append(reqs, request{0, 10000, 11000})
 
-	flattened := reqs.flatten()
-
-	flattened.writeRawReqData(w, 0)
+	reqs.writeRawReqData(w, 0, 1)
 
 	assert.Equal(
 		t,
-		header+"200;123001;123007;\n"+"-1;10000;11000;\n",
+		"200;123001;123007;1;\n"+"0;10000;11000;1;\n",
 		b.String(),
-		"full CSV output should be written",
+		"full CSV output of a given connection should be written",
 	)
 }

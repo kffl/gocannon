@@ -44,9 +44,7 @@ func runGocannon() error {
 					break
 				}
 
-				if code != -1 {
-					stats.RecordResponse(cid, code, start, end)
-				}
+				stats.RecordResponse(cid, code, start, end)
 			}
 			wg.Done()
 		}(c, connectionID)
@@ -54,17 +52,14 @@ func runGocannon() error {
 
 	wg.Wait()
 
-	stats.CalculateStats(start, stop, *interval)
+	err = stats.CalculateStats(start, stop, *interval, *outputFile)
+
+	if err != nil {
+		return err
+	}
 
 	printSummary(stats)
 	stats.PrintReport()
-
-	if *outputFile != "" {
-		err = stats.SaveRawData(*outputFile)
-		if err != nil {
-			return err
-		}
-	}
 
 	return nil
 }

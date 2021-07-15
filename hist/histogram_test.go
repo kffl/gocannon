@@ -42,7 +42,7 @@ func TestCalculateStats(t *testing.T) {
 	h.RecordResponse(0, 200, 100000, 150000) // 50μs
 	h.RecordResponse(0, 200, 1000, 2005)     // 1μs
 
-	h.CalculateStats(10, int64(time.Second)*10+10, time.Millisecond)
+	h.CalculateStats(10, int64(time.Second)*10+10, time.Millisecond, "")
 
 	assert.Equal(t, int64(5), h.GetReqCount())
 	assert.Equal(t, 0.5, h.GetReqPerSec())

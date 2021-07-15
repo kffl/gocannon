@@ -9,6 +9,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// spawn an HTTP server that will be used as target for other tests
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello")
 	})

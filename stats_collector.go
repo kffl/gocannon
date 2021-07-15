@@ -10,9 +10,8 @@ import (
 
 type statsCollector interface {
 	RecordResponse(conn int, code int, start int64, end int64)
-	CalculateStats(start int64, stop int64, interval time.Duration)
+	CalculateStats(start int64, stop int64, interval time.Duration, fileName string) error
 	PrintReport()
-	SaveRawData(fileName string) error
 	GetReqCount() int64
 	GetReqPerSec() float64
 	GetLatencyAvg() float64

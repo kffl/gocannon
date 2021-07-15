@@ -3,9 +3,12 @@ package hist
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"sync/atomic"
 	"time"
+
+	"github.com/kffl/gocannon/rescodes"
 )
 
 type histogram []int64
@@ -18,9 +21,11 @@ type summary struct {
 }
 
 type requestHist struct {
-	data    histogram
-	bins    int64
-	results summary
+	data      histogram
+	bins      int64
+	didNotFit int64
+	resCodes  *rescodes.Rescodes
+	results   summary
 }
 
 func NewRequestHist(timeout time.Duration) requestHist {
@@ -28,13 +33,21 @@ func NewRequestHist(timeout time.Duration) requestHist {
 	r := requestHist{}
 	r.data = make(histogram, bins)
 	r.bins = bins
+	r.resCodes = rescodes.NewRescodes()
 	return r
 }
 
 func (h *requestHist) RecordResponse(conn int, code int, start int64, end int64) {
-	index := int64(float64(end-start)/1000.0 + 0.5)
-	if index < h.bins {
-		atomic.AddInt64(&((*h).data[index]), 1)
+	if code == 0 {
+		h.resCodes.RecordRequestThreadSafe(0)
+	} else {
+		index := int64(float64(end-start)/1000.0 + 0.5)
+		if index < h.bins {
+			atomic.AddInt64(&((*h).data[index]), 1)
+			h.resCodes.RecordRequestThreadSafe(code)
+		} else {
+			atomic.AddInt64(&h.didNotFit, 1)
+		}
 	}
 }
 
@@ -42,7 +55,8 @@ func (h *requestHist) CalculateStats(
 	start int64,
 	stop int64,
 	interval time.Duration,
-) {
+	outputFile string,
+) error {
 	percentiles, count := h.data.calculatePercentilesAndCount([]float64{50., 75., 90., 99.})
 	avg := h.data.calculateAvg()
 	reqPerSec := float64(count) / float64((stop-start)/int64(time.Second))
@@ -53,13 +67,27 @@ func (h *requestHist) CalculateStats(
 		avg,
 		percentiles,
 	}
+
+	if outputFile != "" {
+		return h.saveRawData(outputFile)
+	}
+
+	return nil
 }
 
 func (h *requestHist) PrintReport() {
 	h.results.print()
+	if h.didNotFit > 0 {
+		fmt.Fprintf(
+			os.Stderr,
+			"WARNING: some recorded responses (%d) did not fit in the histogram potentially skewing the resulting stats. Consider increasing timeout duration.\n",
+			h.didNotFit,
+		)
+	}
+	h.resCodes.PrintRescodes()
 }
 
-func (h *requestHist) SaveRawData(fileName string) error {
+func (h *requestHist) saveRawData(fileName string) error {
 	f, err := os.Create(fileName)
 
 	if err != nil {

@@ -39,7 +39,7 @@ func TestGocannon(t *testing.T) {
 					break
 				}
 
-				if code != -1 {
+				if code != 0 {
 					atomic.AddInt32(&ops, 1)
 					reqStats.RecordResponse(cid, code, start, end)
 					histStats.RecordResponse(cid, code, start, end)
@@ -51,8 +51,8 @@ func TestGocannon(t *testing.T) {
 
 	wg.Wait()
 
-	reqStats.CalculateStats(start, stop, time.Duration(250)*time.Millisecond)
-	histStats.CalculateStats(start, stop, time.Duration(250)*time.Millisecond)
+	reqStats.CalculateStats(start, stop, time.Duration(250)*time.Millisecond, "")
+	histStats.CalculateStats(start, stop, time.Duration(250)*time.Millisecond, "")
 
 	assert.Nil(t, err, "the http client should be created without an error")
 	assert.Equal(

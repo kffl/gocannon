@@ -3,6 +3,8 @@ package reqlog
 import (
 	"sort"
 	"time"
+
+	"github.com/kffl/gocannon/rescodes"
 )
 
 type request struct {
@@ -20,6 +22,7 @@ type requestLogCollector struct {
 	flatLog        *flatRequestLog
 	results        *fullStatistics
 	startTimestamp int64
+	resCodes       *rescodes.Rescodes
 }
 
 func newRequests(n int, preallocate int) requestLog {
@@ -49,28 +52,38 @@ func (r *requestLogCollector) CalculateStats(
 	start int64,
 	stop int64,
 	interval time.Duration,
-) {
+	outputFile string,
+) error {
 	r.startTimestamp = start
+
+	// save raw request data before flattening the request log
+	err := r.saveRawData(outputFile)
+
+	r.resCodes = rescodes.NewRescodes()
+	r.saveResCodes()
+
 	reqsFlat := r.reqLog.flatten()
 	reqsFlat.sort()
 
 	results := reqsFlat.calculateStats(start, stop, interval)
 	r.results = &results
 
-	// keep the flattened, sorted request log in case the output is to be saved
+	// keep the flattened, sorted request log
 	r.flatLog = &reqsFlat
 	// while releasing the connection-paritioned one to the GC
 	*(r.reqLog) = nil
 
+	return err
 }
 
 func (r *requestLogCollector) PrintReport() {
 	r.results.print()
+	r.resCodes.PrintRescodes()
 }
 
-func (r *requestLogCollector) SaveRawData(outputFile string) error {
+func (r *requestLogCollector) saveRawData(outputFile string) error {
 	if outputFile != "" {
-		return r.flatLog.saveCSV(r.startTimestamp, outputFile)
+		return r.reqLog.saveCSV(r.startTimestamp, outputFile)
 	}
 	return nil
 
@@ -88,11 +101,23 @@ func (r *requestLogCollector) GetLatencyAvg() float64 {
 	return r.results.summary.latencyAVG
 }
 
+func (r *requestLogCollector) saveResCodes() {
+	for _, connLog := range *r.reqLog {
+		for _, req := range connLog {
+			r.resCodes.RecordRequest(req.code)
+		}
+	}
+}
+
 func (reqs requestLog) flatten() flatRequestLog {
 	flattened := make(flatRequestLog, 0, 50000)
 
 	for i := 0; i < len(reqs); i++ {
-		flattened = append(flattened, reqs[i]...)
+		for j := 0; j < len(reqs[i]); j++ {
+			if reqs[i][j].code != 0 {
+				flattened = append(flattened, reqs[i][j])
+			}
+		}
 	}
 
 	return flattened

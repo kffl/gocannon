@@ -1,0 +1,9 @@
+authors: 
+  - family-names: Kuffel
+    given-names: "Paweł"
+cff-version: "1.1.0"
+license: "Apache-2.0"
+message: "Please use the following citation metadata."
+repository-code: "https://github.com/kffl/gocannon"
+title: "Gocannon - Performance-focused HTTP benchmarking tool"
+version: "0.0.1"

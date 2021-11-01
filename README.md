@@ -1,5 +1,7 @@
 # :boom: gocannon - HTTP benchmarking tool
 
+[![CI Workflow](https://github.com/kffl/gocannon/workflows/CI/badge.svg)](https://github.com/kffl/gocannon/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/kffl/gocannon)](https://goreportcard.com/report/github.com/kffl/gocannon)
+
 Gocannon is a lightweight HTTP benchmarking tool, intended to measure changes in backend application performance over time. It keeps a detailed log of each request that is sent, not just the histogram of their latencies.
 
 ## Usage

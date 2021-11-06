@@ -19,7 +19,6 @@ func newHTTPClient(
 	timeout time.Duration,
 	connections int,
 ) (*fasthttp.HostClient, error) {
-	c := new(fasthttp.HostClient)
 	u, err := url.ParseRequestURI(target)
 	if err != nil {
 		return nil, ErrWrongTarget
@@ -27,7 +26,7 @@ func newHTTPClient(
 	if u.Scheme != "http" {
 		return nil, ErrUnsupportedProtocol
 	}
-	c = &fasthttp.HostClient{
+	c := &fasthttp.HostClient{
 		Addr:                          u.Host,
 		MaxConns:                      int(connections),
 		ReadTimeout:                   timeout,
@@ -40,14 +39,14 @@ func newHTTPClient(
 	return c, nil
 }
 
-func performRequest(c *fasthttp.HostClient, target string) (
+func performRequest(c *fasthttp.HostClient, target string, method string) (
 	code int, start int64, end int64,
 ) {
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
 
 	req.URI().SetScheme("http")
-	req.Header.SetMethod("GET")
+	req.Header.SetMethod(method)
 	req.SetRequestURI(target)
 
 	start = makeTimestamp()

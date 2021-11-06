@@ -15,6 +15,15 @@ func TestMain(m *testing.M) {
 		fmt.Fprintf(w, "Hello")
 	})
 
+	http.HandleFunc("/postonly", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Wrong method")
+		} else {
+			fmt.Fprintf(w, "Ok")
+		}
+	})
+
 	http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Oooops...")

@@ -34,7 +34,7 @@ func TestGocannon(t *testing.T) {
 	for connectionID := 0; connectionID < conns; connectionID++ {
 		go func(c *fasthttp.HostClient, cid int) {
 			for {
-				code, start, end := performRequest(c, target)
+				code, start, end := performRequest(c, target, "GET")
 				if end >= stop {
 					break
 				}

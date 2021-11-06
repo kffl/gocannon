@@ -39,7 +39,7 @@ func newHTTPClient(
 	return c, nil
 }
 
-func performRequest(c *fasthttp.HostClient, target string, method string) (
+func performRequest(c *fasthttp.HostClient, target string, method string, body []byte) (
 	code int, start int64, end int64,
 ) {
 	req := fasthttp.AcquireRequest()
@@ -48,6 +48,8 @@ func performRequest(c *fasthttp.HostClient, target string, method string) (
 	req.URI().SetScheme("http")
 	req.Header.SetMethod(method)
 	req.SetRequestURI(target)
+
+	req.SetBodyRaw(body)
 
 	start = makeTimestamp()
 	err := c.Do(req, resp)

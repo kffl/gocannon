@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -20,7 +22,13 @@ func TestMain(m *testing.M) {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "Wrong method")
 		} else {
-			fmt.Fprintf(w, "Ok")
+			b, _ := ioutil.ReadAll(r.Body)
+			if bytes.Compare([]byte("testbody"), b) != 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(w, "Wrong body")
+			} else {
+				fmt.Fprintf(w, "Ok")
+			}
 		}
 	})
 

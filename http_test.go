@@ -35,10 +35,11 @@ func TestPerformRequest(t *testing.T) {
 
 	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10)
 
-	codeOk, _, _ := performRequest(c, "http://localhost:3000/", "GET")
-	codePost, _, _ := performRequest(c, "http://localhost:3000/postonly", "POST")
-	codeISE, _, _ := performRequest(c, "http://localhost:3000/error", "GET")
-	codeTimeout, _, _ := performRequest(c, "http://localhost:3000/timeout", "GET")
+	codeOk, _, _ := performRequest(c, "http://localhost:3000/", "GET", []byte(""))
+	testBody := rawRequestBody([]byte("testbody"))
+	codePost, _, _ := performRequest(c, "http://localhost:3000/postonly", "POST", testBody)
+	codeISE, _, _ := performRequest(c, "http://localhost:3000/error", "GET", []byte(""))
+	codeTimeout, _, _ := performRequest(c, "http://localhost:3000/timeout", "GET", []byte(""))
 
 	assert.Equal(t, 200, codeOk)
 	assert.Equal(t, 200, codePost)

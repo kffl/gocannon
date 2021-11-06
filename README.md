@@ -23,6 +23,7 @@ Flags:
       --preallocate=1000  Number of requests in req log to preallocate memory for per
                           connection (reqlog mode)
       --method=GET        The HTTP request method (GET, POST, PUT, PATCH or DELETE)
+  -b, --body="{data..."   HTTP request body
       --version           Show application version.
 
 Args:

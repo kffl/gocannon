@@ -32,6 +32,7 @@ var (
 	preallocate = kingpin.Flag("preallocate", "Number of requests in req log to preallocate memory for per connection (reqlog mode)").
 			Default("1000").
 			Int()
+	method = kingpin.Flag("method", "The HTTP request method (GET, POST, PUT, PATCH or DELETE)").Default("GET").Enum("GET", "POST", "PUT", "PATCH", "DELETE")
 	target = kingpin.Arg("target", "HTTP target URL").Required().String()
 )
 

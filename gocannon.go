@@ -39,7 +39,7 @@ func runGocannon() error {
 	for connectionID := 0; connectionID < n; connectionID++ {
 		go func(c *fasthttp.HostClient, cid int) {
 			for {
-				code, start, end := performRequest(c, *target)
+				code, start, end := performRequest(c, *target, *method)
 				if end >= stop {
 					break
 				}

@@ -22,6 +22,7 @@ Flags:
   -i, --interval=250ms    Interval for statistics calculation (reqlog mode)
       --preallocate=1000  Number of requests in req log to preallocate memory for per
                           connection (reqlog mode)
+      --method=GET        The HTTP request method (GET, POST, PUT, PATCH or DELETE)
       --version           Show application version.
 
 Args:

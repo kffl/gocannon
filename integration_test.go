@@ -75,10 +75,11 @@ func TestGocannon(t *testing.T) {
 		"requests per second calculated by reqlog and by hist should be equal",
 	)
 	deltaL := math.Abs(reqStats.GetLatencyAvg() - histStats.GetLatencyAvg())
+	maxDelta := math.Min(reqStats.GetLatencyAvg(), histStats.GetLatencyAvg()) * 0.0001
 	assert.LessOrEqual(
 		t,
 		deltaL,
-		float64(2),
+		maxDelta,
 		"average latencies calculated by reqlog and hist should be within the error margin",
 	)
 	assert.Greater(

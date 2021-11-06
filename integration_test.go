@@ -17,6 +17,7 @@ func TestGocannon(t *testing.T) {
 	timeout := time.Duration(200) * time.Millisecond
 	duration := time.Duration(3) * time.Second
 	conns := 50
+	body := []byte("")
 
 	c, err := newHTTPClient(target, timeout, conns)
 
@@ -34,7 +35,7 @@ func TestGocannon(t *testing.T) {
 	for connectionID := 0; connectionID < conns; connectionID++ {
 		go func(c *fasthttp.HostClient, cid int) {
 			for {
-				code, start, end := performRequest(c, target, "GET")
+				code, start, end := performRequest(c, target, "GET", body)
 				if end >= stop {
 					break
 				}

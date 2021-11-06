@@ -1,8 +1,31 @@
 package main
 
 import (
+	"fmt"
+
 	"gopkg.in/alecthomas/kingpin.v2"
 )
+
+type rawRequestBody []byte
+
+func (b *rawRequestBody) Set(value string) error {
+	(*b) = []byte(value)
+	return nil
+}
+
+func (b *rawRequestBody) String() string {
+	return fmt.Sprint(*b)
+}
+
+func (b *rawRequestBody) IsCumulative() bool {
+	return false
+}
+
+func parseRequestBody(s kingpin.Settings) *rawRequestBody {
+	r := &rawRequestBody{}
+	s.SetValue((*rawRequestBody)(r))
+	return r
+}
 
 var (
 	duration = kingpin.Flag("duration", "Load test duration").
@@ -33,6 +56,7 @@ var (
 			Default("1000").
 			Int()
 	method = kingpin.Flag("method", "The HTTP request method (GET, POST, PUT, PATCH or DELETE)").Default("GET").Enum("GET", "POST", "PUT", "PATCH", "DELETE")
+	body   = parseRequestBody(kingpin.Flag("body", "HTTP request body").Short('b').PlaceHolder("\"{data...\""))
 	target = kingpin.Arg("target", "HTTP target URL").Required().String()
 )
 

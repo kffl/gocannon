@@ -42,6 +42,15 @@ func TestMain(m *testing.M) {
 		fmt.Fprintf(w, "Too late...")
 	})
 
+	http.HandleFunc("/customheader", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Custom-Header") != "gocannon" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Wrong method")
+		} else {
+			fmt.Fprintf(w, "Ok")
+		}
+	})
+
 	go func() {
 		http.ListenAndServe(":3000", nil)
 	}()

@@ -15,15 +15,17 @@ Flags:
   -d, --duration=10s      Load test duration
   -c, --connections=50    Maximum number of concurrent connections
   -t, --timeout=200ms     HTTP client timeout
-  -m, --mode="reqlog"     Statistics collection mode: reqlog (logs each request) or hist
-                          (stores histogram of completed requests latencies)
-  -o, --output=file.csv   File to save the request log in CSV format (reqlog mode) or a
-                          text file with raw histogram data (hist mode)
+  -m, --mode="reqlog"     Statistics collection mode: reqlog (logs each request) or
+                          hist (stores histogram of completed requests latencies)
+  -o, --output=file.csv   File to save the request log in CSV format (reqlog mode)
+                          or a text file with raw histogram data (hist mode)
   -i, --interval=250ms    Interval for statistics calculation (reqlog mode)
-      --preallocate=1000  Number of requests in req log to preallocate memory for per
-                          connection (reqlog mode)
+      --preallocate=1000  Number of requests in req log to preallocate memory for
+                          per connection (reqlog mode)
       --method=GET        The HTTP request method (GET, POST, PUT, PATCH or DELETE)
   -b, --body="{data..."   HTTP request body
+  -h, --header="k:v" ...  HTTP request header(s). You can set more than one header
+                          by repeating this flag.
       --version           Show application version.
 
 Args:

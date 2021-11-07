@@ -94,6 +94,6 @@ var (
 )
 
 func parseArgs() {
-	kingpin.Version("0.0.1")
+	kingpin.Version("0.1.0")
 	kingpin.Parse()
 }

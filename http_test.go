@@ -34,15 +34,21 @@ func TestPerformRequest(t *testing.T) {
 	timeout := time.Millisecond * 100
 
 	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10)
+	r := requestHeaders{}
+	customHeader := requestHeaders{requestHeader{"Custom-Header", "gocannon"}}
 
-	codeOk, _, _ := performRequest(c, "http://localhost:3000/", "GET", []byte(""))
+	codeOk, _, _ := performRequest(c, "http://localhost:3000/", "GET", []byte(""), r)
 	testBody := rawRequestBody([]byte("testbody"))
-	codePost, _, _ := performRequest(c, "http://localhost:3000/postonly", "POST", testBody)
-	codeISE, _, _ := performRequest(c, "http://localhost:3000/error", "GET", []byte(""))
-	codeTimeout, _, _ := performRequest(c, "http://localhost:3000/timeout", "GET", []byte(""))
+	codePost, _, _ := performRequest(c, "http://localhost:3000/postonly", "POST", testBody, r)
+	codeISE, _, _ := performRequest(c, "http://localhost:3000/error", "GET", []byte(""), r)
+	codeTimeout, _, _ := performRequest(c, "http://localhost:3000/timeout", "GET", []byte(""), r)
+	codeMissingHeader, _, _ := performRequest(c, "http://localhost:3000/customheader", "GET", []byte(""), r)
+	codeWithHeader, _, _ := performRequest(c, "http://localhost:3000/customheader", "GET", []byte(""), customHeader)
 
 	assert.Equal(t, 200, codeOk)
 	assert.Equal(t, 200, codePost)
 	assert.Equal(t, http.StatusInternalServerError, codeISE)
 	assert.Equal(t, 0, codeTimeout)
+	assert.Equal(t, http.StatusBadRequest, codeMissingHeader)
+	assert.Equal(t, 200, codeWithHeader)
 }

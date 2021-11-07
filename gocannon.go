@@ -15,7 +15,7 @@ func exitWithError(err error) {
 
 func runGocannon() error {
 
-	c, err := newHTTPClient(*target, *timeout, *connections)
+	c, err := newHTTPClient(*target, *timeout, *connections, *trustAll)
 
 	if err != nil {
 		return err

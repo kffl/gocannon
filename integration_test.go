@@ -19,7 +19,7 @@ func TestGocannon(t *testing.T) {
 	conns := 50
 	body := []byte("")
 
-	c, err := newHTTPClient(target, timeout, conns)
+	c, err := newHTTPClient(target, timeout, conns, true)
 
 	var ops int32
 	var wg sync.WaitGroup

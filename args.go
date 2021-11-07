@@ -87,10 +87,11 @@ var (
 	preallocate = kingpin.Flag("preallocate", "Number of requests in req log to preallocate memory for per connection (reqlog mode)").
 			Default("1000").
 			Int()
-	method  = kingpin.Flag("method", "The HTTP request method (GET, POST, PUT, PATCH or DELETE)").Default("GET").Enum("GET", "POST", "PUT", "PATCH", "DELETE")
-	body    = parseRequestBody(kingpin.Flag("body", "HTTP request body").Short('b').PlaceHolder("\"{data...\""))
-	headers = parseRequestHeaders(kingpin.Flag("header", "HTTP request header(s). You can set more than one header by repeating this flag.").Short('h').PlaceHolder("\"k:v\""))
-	target  = kingpin.Arg("target", "HTTP target URL").Required().String()
+	method   = kingpin.Flag("method", "The HTTP request method (GET, POST, PUT, PATCH or DELETE)").Default("GET").Enum("GET", "POST", "PUT", "PATCH", "DELETE")
+	body     = parseRequestBody(kingpin.Flag("body", "HTTP request body").Short('b').PlaceHolder("\"{data...\""))
+	headers  = parseRequestHeaders(kingpin.Flag("header", "HTTP request header(s). You can set more than one header by repeating this flag.").Short('h').PlaceHolder("\"k:v\""))
+	trustAll = kingpin.Flag("trust-all", "Omit SSL certificate validation").Bool()
+	target   = kingpin.Arg("target", "HTTP target URL with port (i.e. http://localhost:80/test or https://host:443/x)").Required().String()
 )
 
 func parseArgs() {

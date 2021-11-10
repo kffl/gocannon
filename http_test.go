@@ -10,30 +10,43 @@ import (
 
 func TestNewHTTPClientWrongURL(t *testing.T) {
 
-	_, err1 := newHTTPClient("XYZthisisawrongurl123", time.Millisecond*200, 10)
-	_, err2 := newHTTPClient("https://something/", time.Millisecond*200, 10)
+	_, err1 := newHTTPClient("XYZthisisawrongurl123", time.Millisecond*200, 10, true)
+	_, err2 := newHTTPClient("ldap://something/", time.Millisecond*200, 10, true)
+	_, err3 := newHTTPClient("http://localhost/", time.Millisecond*200, 10, true)
 
 	assert.ErrorIs(t, err1, ErrWrongTarget, "target URL should be detected as invalid")
-	assert.ErrorIs(t, err2, ErrUnsupportedProtocol, "target URL should be detected as non-http")
+	assert.ErrorIs(t, err2, ErrUnsupportedProtocol, "target URL should be detected as unsupported (other than http and https)")
+	assert.ErrorIs(t, err3, ErrMissingPort, "target URL without port should cause an error")
 }
 
 func TestNewHTTPClientCorrectUrl(t *testing.T) {
 	timeout := time.Millisecond * 200
 	maxConnections := 123
 
-	c, err := newHTTPClient("http://localhost:3000/", timeout, maxConnections)
+	c, err := newHTTPClient("http://localhost:3000/", timeout, maxConnections, true)
+	c2, err2 := newHTTPClient("https://localhost:443/", timeout, maxConnections, false)
 
-	assert.Nil(t, err, "correct target")
+	assert.Nil(t, err, "correct http target")
 	assert.Equal(t, "localhost:3000", c.Addr)
 	assert.Equal(t, maxConnections, c.MaxConns)
 	assert.Equal(t, timeout, c.ReadTimeout)
 	assert.Equal(t, timeout, c.WriteTimeout)
+	assert.Equal(t, false, c.IsTLS)
+	assert.Equal(t, true, c.TLSConfig.InsecureSkipVerify)
+
+	assert.Nil(t, err2, "correct https target")
+	assert.Equal(t, "localhost:443", c2.Addr)
+	assert.Equal(t, maxConnections, c2.MaxConns)
+	assert.Equal(t, timeout, c2.ReadTimeout)
+	assert.Equal(t, timeout, c2.WriteTimeout)
+	assert.Equal(t, true, c2.IsTLS)
+	assert.Equal(t, false, c2.TLSConfig.InsecureSkipVerify)
 }
 
 func TestPerformRequest(t *testing.T) {
 	timeout := time.Millisecond * 100
 
-	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10)
+	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10, true)
 	r := requestHeaders{}
 	customHeader := requestHeaders{requestHeader{"Custom-Header", "gocannon"}}
 
@@ -51,4 +64,30 @@ func TestPerformRequest(t *testing.T) {
 	assert.Equal(t, 0, codeTimeout)
 	assert.Equal(t, http.StatusBadRequest, codeMissingHeader)
 	assert.Equal(t, 200, codeWithHeader)
+}
+
+func TestPerformRequestHTTPS(t *testing.T) {
+	timeout := time.Second * 3
+
+	c, _ := newHTTPClient("https://dev.kuffel.io:443/", timeout, 1, false)
+	r := requestHeaders{}
+
+	codeOk, _, _ := performRequest(c, "https://dev.kuffel.io:443/", "GET", []byte(""), r)
+
+	assert.Equal(t, 200, codeOk)
+}
+
+func TestPerformRequestHTTPSInvalidCert(t *testing.T) {
+	timeout := time.Second * 3
+	targetBadCert := "https://self-signed.badssl.com:443/"
+
+	trustingClient, _ := newHTTPClient(targetBadCert, timeout, 1, true)
+	regularClient, _ := newHTTPClient(targetBadCert, timeout, 1, false)
+	r := requestHeaders{}
+
+	codeTrusting, _, _ := performRequest(trustingClient, targetBadCert, "GET", []byte(""), r)
+	codeRegular, _, _ := performRequest(regularClient, targetBadCert, "GET", []byte(""), r)
+
+	assert.Equal(t, 200, codeTrusting)
+	assert.Equal(t, 0, codeRegular)
 }

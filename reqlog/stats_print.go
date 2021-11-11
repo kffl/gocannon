@@ -2,7 +2,6 @@ package reqlog
 
 import (
 	"fmt"
-	"time"
 )
 
 func printStatsHeader() {
@@ -10,14 +9,28 @@ func printStatsHeader() {
 	fmt.Println("     Count           AVG         P50         P75         P90         P99")
 }
 
+var durationUnits = []string{"s ", "ms", "μs", "ns"}
+var durationValues = []int64{1000000000, 1000000, 1000, 1}
+
+func formatDuration(d float64) string {
+	if d == -1 {
+		return "-"
+	}
+	for i, unit := range durationUnits {
+		value := durationValues[i]
+		if int64(d)/value > 0 {
+			return fmt.Sprintf("%.4f%s", d/float64(value), unit)
+		}
+	}
+	return fmt.Sprintf("%.4f%s", d/float64(1), "ns")
+}
+
 func formatLatency(latency float64) string {
-	d := time.Duration(latency) * time.Nanosecond
-	return d.String()
+	return formatDuration(latency)
 }
 
 func formatLatencyI64(latency int64) string {
-	d := time.Duration(latency) * time.Nanosecond
-	return d.String()
+	return formatDuration(float64(latency))
 }
 
 func (s *statistics) print() {

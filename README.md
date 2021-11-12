@@ -27,6 +27,7 @@ Flags:
   -h, --header="k:v" ...  HTTP request header(s). You can set more than one header by
                           repeating this flag.
       --trust-all         Omit SSL certificate validation
+      --plugin=/to/p.so   Plugin to run Gocannon with
       --version           Show application version.
 
 Args:
@@ -112,6 +113,17 @@ Similarly to saving CSV output in request log mode, you can write the histogram 
 45
 [...]
 ```
+### Custom plugins
+
+Gocannon supports user-provided plugins, which can customize the requests sent during the load test. A custom plugin has to satisfy the `GocannonPlugin` interface defined in the `common` package, which also contains types required for plugin development. An example implementation with additional comments is provided in `_example_plugin` folder.
+
+In order to build a plugin, use the following command inside its directory:
+
+```
+go build -buildmode=plugin -o plugin.so plugin.go
+```
+
+Once you obtain a shared object (`.so`) file, you can provide a path to it via `--plugin` flag. Bare in mind that a custom plugin `.so` file and the Gocannon binary using it must both be compiled using the same Go version.
 
 ## Load testing recommendations
 

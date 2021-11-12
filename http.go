@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kffl/gocannon/common"
 	"github.com/valyala/fasthttp"
 )
 
@@ -53,7 +54,7 @@ func newHTTPClient(
 	return c, nil
 }
 
-func performRequest(c *fasthttp.HostClient, target string, method string, body []byte, headers requestHeaders) (
+func performRequest(c *fasthttp.HostClient, target string, method string, body []byte, headers common.RequestHeaders) (
 	code int, start int64, end int64,
 ) {
 	req := fasthttp.AcquireRequest()
@@ -70,7 +71,7 @@ func performRequest(c *fasthttp.HostClient, target string, method string, body [
 	req.SetBodyRaw(body)
 
 	for _, h := range headers {
-		req.Header.Add(h.key, h.value)
+		req.Header.Add(h.Key, h.Value)
 	}
 
 	start = makeTimestamp()

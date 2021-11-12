@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kffl/gocannon/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,11 +48,11 @@ func TestPerformRequest(t *testing.T) {
 	timeout := time.Millisecond * 100
 
 	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10, true)
-	r := requestHeaders{}
-	customHeader := requestHeaders{requestHeader{"Custom-Header", "gocannon"}}
+	r := common.RequestHeaders{}
+	customHeader := common.RequestHeaders{common.RequestHeader{Key: "Custom-Header", Value: "gocannon"}}
 
 	codeOk, _, _ := performRequest(c, "http://localhost:3000/", "GET", []byte(""), r)
-	testBody := rawRequestBody([]byte("testbody"))
+	testBody := common.RawRequestBody([]byte("testbody"))
 	codePost, _, _ := performRequest(c, "http://localhost:3000/postonly", "POST", testBody, r)
 	codeISE, _, _ := performRequest(c, "http://localhost:3000/error", "GET", []byte(""), r)
 	codeTimeout, _, _ := performRequest(c, "http://localhost:3000/timeout", "GET", []byte(""), r)
@@ -70,7 +71,7 @@ func TestPerformRequestHTTPS(t *testing.T) {
 	timeout := time.Second * 3
 
 	c, _ := newHTTPClient("https://dev.kuffel.io:443/", timeout, 1, false)
-	r := requestHeaders{}
+	r := common.RequestHeaders{}
 
 	codeOk, _, _ := performRequest(c, "https://dev.kuffel.io:443/", "GET", []byte(""), r)
 
@@ -83,7 +84,7 @@ func TestPerformRequestHTTPSInvalidCert(t *testing.T) {
 
 	trustingClient, _ := newHTTPClient(targetBadCert, timeout, 1, true)
 	regularClient, _ := newHTTPClient(targetBadCert, timeout, 1, false)
-	r := requestHeaders{}
+	r := common.RequestHeaders{}
 
 	codeTrusting, _, _ := performRequest(trustingClient, targetBadCert, "GET", []byte(""), r)
 	codeRegular, _, _ := performRequest(regularClient, targetBadCert, "GET", []byte(""), r)

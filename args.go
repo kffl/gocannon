@@ -58,7 +58,7 @@ var config = common.Config{
 }
 
 func parseArgs() error {
-	app.Version("0.2.1")
+	app.Version("1.0.0")
 	_, err := app.Parse(os.Args[1:])
 	return err
 }

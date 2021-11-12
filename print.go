@@ -1,10 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-func printHeader() {
-	fmt.Printf("Attacking %s with %d connections over %s\n", *target, *connections, *duration)
-	fmt.Printf("gocannon goes brr...\n")
+	"github.com/kffl/gocannon/common"
+)
+
+func printHeader(cfg common.Config) {
+	fmt.Printf("Attacking %s with %d connections over %s\n", *cfg.Target, *cfg.Connections, *cfg.Duration)
 }
 
 func printSummary(s statsCollector) {

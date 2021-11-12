@@ -2,11 +2,13 @@ package main
 
 import (
 	"math"
+	"os/exec"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/kffl/gocannon/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
@@ -18,6 +20,7 @@ func TestGocannon(t *testing.T) {
 	duration := time.Duration(3) * time.Second
 	conns := 50
 	body := []byte("")
+	headers := common.RequestHeaders{}
 
 	c, err := newHTTPClient(target, timeout, conns, true)
 
@@ -35,7 +38,7 @@ func TestGocannon(t *testing.T) {
 	for connectionID := 0; connectionID < conns; connectionID++ {
 		go func(c *fasthttp.HostClient, cid int) {
 			for {
-				code, start, end := performRequest(c, target, "GET", body, *headers)
+				code, start, end := performRequest(c, target, "GET", body, headers)
 				if end >= stop {
 					break
 				}
@@ -91,14 +94,74 @@ func TestGocannon(t *testing.T) {
 }
 
 func TestGocannonDefaultValues(t *testing.T) {
-	*duration = time.Second * 1
-	*connections = 50
-	*timeout = time.Millisecond * 200
-	*mode = "reqlog"
-	*outputFile = ""
-	*interval = time.Millisecond * 250
-	*preallocate = 1000
-	*target = "http://localhost:3000/hello"
+	duration := time.Second * 1
+	connections := 50
+	timeout := time.Millisecond * 200
+	mode := "reqlog"
+	outputFile := ""
+	interval := time.Millisecond * 250
+	preallocate := 1000
+	method := "GET"
+	body := common.RawRequestBody{}
+	header := common.RequestHeaders{}
+	trustAll := false
+	plugin := ""
+	target := "http://localhost:3000/hello"
 
-	assert.Nil(t, runGocannon(), "the load test should be completed without errors")
+	cfg := common.Config{
+		Duration:    &duration,
+		Connections: &connections,
+		Timeout:     &timeout,
+		Mode:        &mode,
+		OutputFile:  &outputFile,
+		Interval:    &interval,
+		Preallocate: &preallocate,
+		Method:      &method,
+		Body:        &body,
+		Headers:     &header,
+		TrustAll:    &trustAll,
+		Plugin:      &plugin,
+		Target:      &target,
+	}
+
+	assert.Nil(t, runGocannon(cfg), "the load test should be completed without errors")
+}
+
+func TestGocanonWithPlugin(t *testing.T) {
+
+	err := exec.Command("go", "build", "-race", "-buildmode=plugin", "-o", "_example_plugin/plugin.so", "_example_plugin/plugin.go").Run()
+
+	assert.Nil(t, err, "the plugin should compile without an error")
+
+	duration := time.Second * 1
+	connections := 50
+	timeout := time.Millisecond * 200
+	mode := "hist"
+	outputFile := ""
+	interval := time.Millisecond * 250
+	preallocate := 1000
+	method := "GET"
+	body := common.RawRequestBody{}
+	header := common.RequestHeaders{}
+	trustAll := true
+	plugin := "_example_plugin/plugin.so"
+	target := "http://localhost:3000/hello"
+
+	cfg := common.Config{
+		Duration:    &duration,
+		Connections: &connections,
+		Timeout:     &timeout,
+		Mode:        &mode,
+		OutputFile:  &outputFile,
+		Interval:    &interval,
+		Preallocate: &preallocate,
+		Method:      &method,
+		Body:        &body,
+		Headers:     &header,
+		TrustAll:    &trustAll,
+		Plugin:      &plugin,
+		Target:      &target,
+	}
+
+	assert.Nil(t, runGocannon(cfg), "the load test should be completed without errors")
 }

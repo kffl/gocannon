@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/kffl/gocannon/common"
 	"github.com/valyala/fasthttp"
 )
 
@@ -13,17 +14,27 @@ func exitWithError(err error) {
 	os.Exit(1)
 }
 
-func runGocannon() error {
+func runGocannon(cfg common.Config) error {
+	var gocannonPlugin common.GocannonPlugin
+	var err error
 
-	c, err := newHTTPClient(*target, *timeout, *connections, *trustAll)
+	if *cfg.Plugin != "" {
+		gocannonPlugin, err = loadPlugin(*cfg.Plugin)
+		if err != nil {
+			return err
+		}
+		gocannonPlugin.Startup(cfg)
+	}
+
+	c, err := newHTTPClient(*cfg.Target, *cfg.Timeout, *cfg.Connections, *cfg.TrustAll)
 
 	if err != nil {
 		return err
 	}
 
-	n := *connections
+	n := *cfg.Connections
 
-	stats, scErr := newStatsCollector(*mode, n, *preallocate, *timeout)
+	stats, scErr := newStatsCollector(*cfg.Mode, n, *cfg.Preallocate, *cfg.Timeout)
 
 	if scErr != nil {
 		return scErr
@@ -34,12 +45,22 @@ func runGocannon() error {
 	wg.Add(n)
 
 	start := makeTimestamp()
-	stop := start + duration.Nanoseconds()
+	stop := start + cfg.Duration.Nanoseconds()
+
+	fmt.Printf("gocannon goes brr...\n")
 
 	for connectionID := 0; connectionID < n; connectionID++ {
-		go func(c *fasthttp.HostClient, cid int) {
+		go func(c *fasthttp.HostClient, cid int, p common.GocannonPlugin) {
 			for {
-				code, start, end := performRequest(c, *target, *method, *body, *headers)
+				var code int
+				var start int64
+				var end int64
+				if p != nil {
+					plugTarget, plugMethod, plugBody, plugHeaders := p.BeforeRequest(cid)
+					code, start, end = performRequest(c, plugTarget, plugMethod, plugBody, plugHeaders)
+				} else {
+					code, start, end = performRequest(c, *cfg.Target, *cfg.Method, *cfg.Body, *cfg.Headers)
+				}
 				if end >= stop {
 					break
 				}
@@ -47,12 +68,12 @@ func runGocannon() error {
 				stats.RecordResponse(cid, code, start, end)
 			}
 			wg.Done()
-		}(c, connectionID)
+		}(c, connectionID, gocannonPlugin)
 	}
 
 	wg.Wait()
 
-	err = stats.CalculateStats(start, stop, *interval, *outputFile)
+	err = stats.CalculateStats(start, stop, *cfg.Interval, *cfg.OutputFile)
 
 	if err != nil {
 		return err
@@ -65,10 +86,14 @@ func runGocannon() error {
 }
 
 func main() {
-	parseArgs()
-	printHeader()
+	err := parseArgs()
+	if err != nil {
+		exitWithError(err)
+	}
 
-	err := runGocannon()
+	printHeader(config)
+
+	err = runGocannon(config)
 
 	if err != nil {
 		exitWithError(err)

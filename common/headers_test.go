@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestSetRequestHeaders(t *testing.T) {
-	r := requestHeaders{}
+	r := RequestHeaders{}
 
 	errHeaderOk := r.Set("Content-Type:application/json")
 	errHeaderWrong := r.Set("WrongHeader")

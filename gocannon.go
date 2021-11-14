@@ -26,7 +26,7 @@ func runGocannon(cfg common.Config) error {
 		gocannonPlugin.Startup(cfg)
 	}
 
-	c, err := newHTTPClient(*cfg.Target, *cfg.Timeout, *cfg.Connections, *cfg.TrustAll)
+	c, err := newHTTPClient(*cfg.Target, *cfg.Timeout, *cfg.Connections, *cfg.TrustAll, true)
 
 	if err != nil {
 		return err

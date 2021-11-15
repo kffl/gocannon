@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -19,26 +20,47 @@ var (
 	ErrMissingPort         = errors.New("missing target port")
 )
 
+func parseTarget(target string) (scheme string, host string, err error) {
+	u, err := url.ParseRequestURI(target)
+	if err != nil {
+		err = ErrWrongTarget
+		return
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		err = ErrUnsupportedProtocol
+		return
+	}
+	tokenizedHost := strings.Split(u.Host, ":")
+	port := tokenizedHost[len(tokenizedHost)-1]
+	if _, err = strconv.Atoi(port); err != nil {
+		err = ErrMissingPort
+		return
+	}
+	return u.Scheme, u.Host, nil
+}
+
+func dialHost(host string, timeout time.Duration) error {
+	conn, err := fasthttp.DialTimeout(host, timeout)
+	if err != nil {
+		return fmt.Errorf("dialing host failed (%w)", err)
+	}
+	conn.Close()
+	return nil
+}
+
 func newHTTPClient(
 	target string,
 	timeout time.Duration,
 	connections int,
 	trustAll bool,
+	checkHost bool,
 ) (*fasthttp.HostClient, error) {
-	u, err := url.ParseRequestURI(target)
+	scheme, host, err := parseTarget(target)
 	if err != nil {
-		return nil, ErrWrongTarget
-	}
-	if u.Scheme != "http" && u.Scheme != "https" {
-		return nil, ErrUnsupportedProtocol
-	}
-	tokenizedHost := strings.Split(u.Host, ":")
-	port := tokenizedHost[len(tokenizedHost)-1]
-	if _, err := strconv.Atoi(port); err != nil {
-		return nil, ErrMissingPort
+		return nil, err
 	}
 	c := &fasthttp.HostClient{
-		Addr:                          u.Host,
+		Addr:                          host,
 		MaxConns:                      int(connections),
 		ReadTimeout:                   timeout,
 		WriteTimeout:                  timeout,
@@ -46,10 +68,16 @@ func newHTTPClient(
 		Dial: func(addr string) (net.Conn, error) {
 			return fasthttp.DialTimeout(addr, timeout)
 		},
-		IsTLS: u.Scheme == "https",
+		IsTLS: scheme == "https",
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: trustAll,
 		},
+	}
+	if checkHost {
+		err = dialHost(host, timeout)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return c, nil
 }

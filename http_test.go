@@ -11,9 +11,9 @@ import (
 
 func TestNewHTTPClientWrongURL(t *testing.T) {
 
-	_, err1 := newHTTPClient("XYZthisisawrongurl123", time.Millisecond*200, 10, true)
-	_, err2 := newHTTPClient("ldap://something/", time.Millisecond*200, 10, true)
-	_, err3 := newHTTPClient("http://localhost/", time.Millisecond*200, 10, true)
+	_, err1 := newHTTPClient("XYZthisisawrongurl123", time.Millisecond*200, 10, true, false)
+	_, err2 := newHTTPClient("ldap://something/", time.Millisecond*200, 10, true, false)
+	_, err3 := newHTTPClient("http://localhost/", time.Millisecond*200, 10, true, false)
 
 	assert.ErrorIs(t, err1, ErrWrongTarget, "target URL should be detected as invalid")
 	assert.ErrorIs(t, err2, ErrUnsupportedProtocol, "target URL should be detected as unsupported (other than http and https)")
@@ -24,8 +24,8 @@ func TestNewHTTPClientCorrectUrl(t *testing.T) {
 	timeout := time.Millisecond * 200
 	maxConnections := 123
 
-	c, err := newHTTPClient("http://localhost:3000/", timeout, maxConnections, true)
-	c2, err2 := newHTTPClient("https://localhost:443/", timeout, maxConnections, false)
+	c, err := newHTTPClient("http://localhost:3000/", timeout, maxConnections, true, true)
+	c2, err2 := newHTTPClient("https://localhost:443/", timeout, maxConnections, false, false)
 
 	assert.Nil(t, err, "correct http target")
 	assert.Equal(t, "localhost:3000", c.Addr)
@@ -47,7 +47,7 @@ func TestNewHTTPClientCorrectUrl(t *testing.T) {
 func TestPerformRequest(t *testing.T) {
 	timeout := time.Millisecond * 100
 
-	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10, true)
+	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10, true, false)
 	r := common.RequestHeaders{}
 	customHeader := common.RequestHeaders{common.RequestHeader{Key: "Custom-Header", Value: "gocannon"}}
 
@@ -70,7 +70,7 @@ func TestPerformRequest(t *testing.T) {
 func TestPerformRequestHTTPS(t *testing.T) {
 	timeout := time.Second * 3
 
-	c, _ := newHTTPClient("https://dev.kuffel.io:443/", timeout, 1, false)
+	c, _ := newHTTPClient("https://dev.kuffel.io:443/", timeout, 1, false, true)
 	r := common.RequestHeaders{}
 
 	codeOk, _, _ := performRequest(c, "https://dev.kuffel.io:443/", "GET", []byte(""), r)
@@ -82,8 +82,8 @@ func TestPerformRequestHTTPSInvalidCert(t *testing.T) {
 	timeout := time.Second * 3
 	targetBadCert := "https://self-signed.badssl.com:443/"
 
-	trustingClient, _ := newHTTPClient(targetBadCert, timeout, 1, true)
-	regularClient, _ := newHTTPClient(targetBadCert, timeout, 1, false)
+	trustingClient, _ := newHTTPClient(targetBadCert, timeout, 1, true, false)
+	regularClient, _ := newHTTPClient(targetBadCert, timeout, 1, false, false)
 	r := common.RequestHeaders{}
 
 	codeTrusting, _, _ := performRequest(trustingClient, targetBadCert, "GET", []byte(""), r)

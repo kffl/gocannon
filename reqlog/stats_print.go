@@ -34,26 +34,26 @@ func formatLatencyI64(latency int64) string {
 }
 
 func (s *statistics) print() {
-	fmt.Printf("%10d %13v", s.count, formatLatency(s.latencyAVG))
-	for _, v := range s.latencyPercentiles {
+	fmt.Printf("%10d %13v", s.Count, formatLatency(s.LatencyAVG))
+	for _, v := range s.LatencyPercentiles {
 		fmt.Printf(" %11v", formatLatencyI64(v))
 	}
 	fmt.Printf("\n")
 }
 
 func (s *fullStatistics) print() {
-	fmt.Printf("Interval stats: (interval = %v) \n", s.interval)
+	fmt.Printf("Interval stats: (interval = %v) \n", s.Interval)
 	printStatsHeader()
 
-	for _, stats := range s.detailed {
+	for _, stats := range s.Detailed {
 		stats.print()
 	}
 
 	fmt.Println("----------")
 
-	s.summary.print()
+	s.Summary.print()
 }
 
 func (s *fullStatistics) GetReqCount() int64 {
-	return s.reqCount
+	return int64(s.Summary.Count)
 }

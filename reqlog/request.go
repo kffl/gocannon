@@ -1,10 +1,13 @@
 package reqlog
 
 import (
+	"encoding/json"
+	"fmt"
 	"sort"
 	"time"
 
 	"github.com/kffl/gocannon/rescodes"
+	"gopkg.in/yaml.v2"
 )
 
 type request struct {
@@ -76,9 +79,27 @@ func (r *requestLogCollector) CalculateStats(
 	return err
 }
 
-func (r *requestLogCollector) PrintReport() {
-	r.results.print()
-	r.resCodes.PrintRescodes()
+func (r *requestLogCollector) PrintReport(format string) {
+	if format == "default" {
+		r.results.print()
+		r.resCodes.PrintRescodes()
+	} else {
+		obj := struct {
+			Report   *fullStatistics
+			ResCodes map[int]int64
+		}{
+			r.results,
+			r.resCodes.AsMap(),
+		}
+		var output []byte
+		if format == "json" {
+			output, _ = json.MarshalIndent(obj, "", "  ")
+		}
+		if format == "yaml" {
+			output, _ = yaml.Marshal(obj)
+		}
+		fmt.Printf("%s", output)
+	}
 }
 
 func (r *requestLogCollector) saveRawData(outputFile string) error {
@@ -90,15 +111,15 @@ func (r *requestLogCollector) saveRawData(outputFile string) error {
 }
 
 func (r *requestLogCollector) GetReqCount() int64 {
-	return r.results.reqCount
+	return int64(r.results.Summary.Count)
 }
 
 func (r *requestLogCollector) GetReqPerSec() float64 {
-	return r.results.reqPerSec
+	return r.results.Summary.ReqPerSec
 }
 
 func (r *requestLogCollector) GetLatencyAvg() float64 {
-	return r.results.summary.latencyAVG
+	return r.results.Summary.LatencyAVG
 }
 
 func (r *requestLogCollector) saveResCodes() {

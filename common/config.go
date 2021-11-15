@@ -15,6 +15,7 @@ type Config struct {
 	Body        *RawRequestBody
 	Headers     *RequestHeaders
 	TrustAll    *bool
+	Format      *string
 	Plugin      *string
 	Target      *string
 }

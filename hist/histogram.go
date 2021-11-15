@@ -2,6 +2,7 @@ package hist
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -9,15 +10,16 @@ import (
 	"time"
 
 	"github.com/kffl/gocannon/rescodes"
+	"gopkg.in/yaml.v2"
 )
 
 type histogram []int64
 
 type summary struct {
-	reqCount           int64
-	reqPerSec          float64
-	latencyAvg         float64
-	latencyPercentiles []int64
+	ReqCount           int64
+	ReqPerSec          float64
+	LatencyAvg         float64
+	LatencyPercentiles []int64
 }
 
 type requestHist struct {
@@ -75,16 +77,36 @@ func (h *requestHist) CalculateStats(
 	return nil
 }
 
-func (h *requestHist) PrintReport() {
-	h.results.print()
-	if h.didNotFit > 0 {
-		fmt.Fprintf(
-			os.Stderr,
-			"WARNING: some recorded responses (%d) did not fit in the histogram potentially skewing the resulting stats. Consider increasing timeout duration.\n",
+func (h *requestHist) PrintReport(format string) {
+	if format == "default" {
+		h.results.print()
+		if h.didNotFit > 0 {
+			fmt.Fprintf(
+				os.Stderr,
+				"WARNING: some recorded responses (%d) did not fit in the histogram potentially skewing the resulting stats. Consider increasing timeout duration.\n",
+				h.didNotFit,
+			)
+		}
+		h.resCodes.PrintRescodes()
+	} else {
+		obj := struct {
+			Report    *summary
+			DidNotFit int64
+			ResCodes  map[int]int64
+		}{
+			&h.results,
 			h.didNotFit,
-		)
+			h.resCodes.AsMap(),
+		}
+		var output []byte
+		if format == "json" {
+			output, _ = json.MarshalIndent(obj, "", " ")
+		}
+		if format == "yaml" {
+			output, _ = yaml.Marshal(obj)
+		}
+		fmt.Printf("%s", output)
 	}
-	h.resCodes.PrintRescodes()
 }
 
 func (h *requestHist) saveRawData(fileName string) error {
@@ -109,13 +131,13 @@ func (h *requestHist) saveRawData(fileName string) error {
 }
 
 func (h *requestHist) GetReqCount() int64 {
-	return h.results.reqCount
+	return h.results.ReqCount
 }
 
 func (h *requestHist) GetReqPerSec() float64 {
-	return h.results.reqPerSec
+	return h.results.ReqPerSec
 }
 
 func (h *requestHist) GetLatencyAvg() float64 {
-	return h.results.latencyAvg * 1000.0
+	return h.results.LatencyAvg * 1000.0
 }

@@ -10,19 +10,18 @@ var percentiles = []float64{50, 75, 90, 99}
 type requestLatencies []int64
 
 type statistics struct {
-	count              int
-	latencyAVG         float64
-	latencyPercentiles []int64
+	Count              int
+	LatencyAVG         float64
+	LatencyPercentiles []int64
+	ReqPerSec          float64
 }
 
 type intervalStatistics []statistics
 
 type fullStatistics struct {
-	summary   statistics
-	detailed  intervalStatistics
-	interval  time.Duration
-	reqCount  int64
-	reqPerSec float64
+	Summary  statistics
+	Detailed intervalStatistics
+	Interval time.Duration
 }
 
 func (sortedReqs *flatRequestLog) calculateStats(
@@ -30,7 +29,7 @@ func (sortedReqs *flatRequestLog) calculateStats(
 	stop int64,
 	intervalDuration time.Duration,
 ) fullStatistics {
-	summaryStats := sortedReqs.calculateIntervalStats()
+	summaryStats := sortedReqs.calculateIntervalStats(stop - start)
 
 	var detailedStats intervalStatistics
 
@@ -47,17 +46,14 @@ func (sortedReqs *flatRequestLog) calculateStats(
 
 		detailedStats = append(
 			detailedStats,
-			slicedRequests.calculateIntervalStats(),
+			slicedRequests.calculateIntervalStats(int64(intervalDuration)),
 		)
 	}
 
-	reqCount := int64(len(*sortedReqs))
-	reqPerSec := float64(reqCount) / float64((stop-start)/int64(time.Second))
-
-	return fullStatistics{summaryStats, detailedStats, intervalDuration, reqCount, reqPerSec}
+	return fullStatistics{summaryStats, detailedStats, intervalDuration}
 }
 
-func (sortedReqs *flatRequestLog) calculateIntervalStats() statistics {
+func (sortedReqs *flatRequestLog) calculateIntervalStats(timespan int64) statistics {
 	latencies := make(requestLatencies, 0, len(*sortedReqs))
 
 	for i := 0; i < len(*sortedReqs); i++ {
@@ -69,11 +65,13 @@ func (sortedReqs *flatRequestLog) calculateIntervalStats() statistics {
 	latencies.sort()
 
 	for _, p := range percentiles {
-		r.latencyPercentiles = append(r.latencyPercentiles, latencies.calculatePercentile(p))
+		r.LatencyPercentiles = append(r.LatencyPercentiles, latencies.calculatePercentile(p))
 	}
 
-	r.count = len(latencies)
-	r.latencyAVG = latencies.calculateAVG()
+	c := len(latencies)
+	r.Count = c
+	r.LatencyAVG = latencies.calculateAVG()
+	r.ReqPerSec = float64(c) / (float64(timespan) / float64(time.Second))
 
 	return r
 }

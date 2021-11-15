@@ -105,6 +105,7 @@ func TestGocannonDefaultValues(t *testing.T) {
 	body := common.RawRequestBody{}
 	header := common.RequestHeaders{}
 	trustAll := false
+	format := "default"
 	plugin := ""
 	target := "http://localhost:3000/hello"
 
@@ -120,6 +121,7 @@ func TestGocannonDefaultValues(t *testing.T) {
 		Body:        &body,
 		Headers:     &header,
 		TrustAll:    &trustAll,
+		Format:      &format,
 		Plugin:      &plugin,
 		Target:      &target,
 	}
@@ -144,6 +146,7 @@ func TestGocanonWithPlugin(t *testing.T) {
 	body := common.RawRequestBody{}
 	header := common.RequestHeaders{}
 	trustAll := true
+	format := "json"
 	plugin := "_example_plugin/plugin.so"
 	target := "http://localhost:3000/hello"
 
@@ -159,6 +162,7 @@ func TestGocanonWithPlugin(t *testing.T) {
 		Body:        &body,
 		Headers:     &header,
 		TrustAll:    &trustAll,
+		Format:      &format,
 		Plugin:      &plugin,
 		Target:      &target,
 	}

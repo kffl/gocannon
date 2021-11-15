@@ -38,11 +38,11 @@ func TestSort(t *testing.T) {
 func TestCalculateIntervalStatsEmpty(t *testing.T) {
 	reqs := flatRequestLog{}
 
-	stats := reqs.calculateIntervalStats()
+	stats := reqs.calculateIntervalStats(250000000)
 
-	assert.Equal(t, 0, stats.count)
-	assert.Equal(t, float64(-1), stats.latencyAVG)
-	assert.ElementsMatch(t, stats.latencyPercentiles, []int64{-1, -1, -1, -1})
+	assert.Equal(t, 0, stats.Count)
+	assert.Equal(t, float64(-1), stats.LatencyAVG)
+	assert.ElementsMatch(t, stats.LatencyPercentiles, []int64{-1, -1, -1, -1})
 }
 
 func TestCalculateIntervalStatsPopulated(t *testing.T) {
@@ -54,11 +54,12 @@ func TestCalculateIntervalStatsPopulated(t *testing.T) {
 		{200, 534, 535},
 	}
 
-	stats := reqs.calculateIntervalStats()
+	stats := reqs.calculateIntervalStats(1000)
 
-	assert.Equal(t, 5, stats.count)
-	assert.Equal(t, float64(40.6), stats.latencyAVG)
-	assert.ElementsMatch(t, stats.latencyPercentiles, []int64{1, 100, 100, 100})
+	assert.Equal(t, 5, stats.Count)
+	assert.Equal(t, float64(40.6), stats.LatencyAVG)
+	assert.Equal(t, float64(5000000), stats.ReqPerSec)
+	assert.ElementsMatch(t, stats.LatencyPercentiles, []int64{1, 100, 100, 100})
 }
 
 func TestCalculateStats(t *testing.T) {
@@ -71,14 +72,14 @@ func TestCalculateStats(t *testing.T) {
 	}
 
 	full := reqs.calculateStats(100, 600, 100)
-	summary := full.summary
-	detailed := full.detailed
+	summary := full.Summary
+	detailed := full.Detailed
 
-	assert.Equal(t, 5, summary.count)
+	assert.Equal(t, 5, summary.Count)
 	assert.Len(t, detailed, 5, "5 intervals should fit in the specified range")
 	assert.Equal(
 		t,
-		detailed[4].count,
+		detailed[4].Count,
 		1,
 		"request should be assigned to an interval based on the response timestamp",
 	)

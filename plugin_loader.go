@@ -14,7 +14,7 @@ var (
 	ErrPluginInterface = errors.New("module symbol doesn't match GocannonPlugin")
 )
 
-func loadPlugin(file string) (common.GocannonPlugin, error) {
+func loadPlugin(file string, silentOutput bool) (common.GocannonPlugin, error) {
 
 	p, err := plugin.Open(file)
 	if err != nil {
@@ -32,7 +32,9 @@ func loadPlugin(file string) (common.GocannonPlugin, error) {
 		return nil, ErrPluginInterface
 	}
 
-	fmt.Printf("Plugin %s loaded.\n", gocannonPlugin.GetName())
+	if !silentOutput {
+		fmt.Printf("Plugin %s loaded.\n", gocannonPlugin.GetName())
+	}
 
 	return gocannonPlugin, nil
 }

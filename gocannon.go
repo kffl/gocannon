@@ -18,8 +18,12 @@ func runGocannon(cfg common.Config) error {
 	var gocannonPlugin common.GocannonPlugin
 	var err error
 
+	if *config.Format == "default" {
+		printHeader(config)
+	}
+
 	if *cfg.Plugin != "" {
-		gocannonPlugin, err = loadPlugin(*cfg.Plugin)
+		gocannonPlugin, err = loadPlugin(*cfg.Plugin, *cfg.Format != "default")
 		if err != nil {
 			return err
 		}
@@ -47,7 +51,9 @@ func runGocannon(cfg common.Config) error {
 	start := makeTimestamp()
 	stop := start + cfg.Duration.Nanoseconds()
 
-	fmt.Printf("gocannon goes brr...\n")
+	if *cfg.Format == "default" {
+		fmt.Printf("gocannon goes brr...\n")
+	}
 
 	for connectionID := 0; connectionID < n; connectionID++ {
 		go func(c *fasthttp.HostClient, cid int, p common.GocannonPlugin) {
@@ -79,8 +85,10 @@ func runGocannon(cfg common.Config) error {
 		return err
 	}
 
-	printSummary(stats)
-	stats.PrintReport()
+	if *cfg.Format == "default" {
+		printSummary(stats)
+	}
+	stats.PrintReport(*cfg.Format)
 
 	return nil
 }
@@ -90,8 +98,6 @@ func main() {
 	if err != nil {
 		exitWithError(err)
 	}
-
-	printHeader(config)
 
 	err = runGocannon(config)
 

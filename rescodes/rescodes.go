@@ -32,3 +32,14 @@ func (r *Rescodes) PrintRescodes() {
 		fmt.Printf("Requests ended with timeout/socket error: %d\n", r[0])
 	}
 }
+
+func (r *Rescodes) AsMap() map[int]int64 {
+	m := make(map[int]int64)
+	for code := 1; code < 600; code++ {
+		hits := r[code]
+		if hits > 0 {
+			m[code] = hits
+		}
+	}
+	return m
+}

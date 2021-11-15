@@ -12,26 +12,32 @@ usage: gocannon [<flags>] <target>
 Flags:
       --help              Show context-sensitive help (also try --help-long and
                           --help-man).
-  -d, --duration=10s      Load test duration
-  -c, --connections=50    Maximum number of concurrent connections
-  -t, --timeout=200ms     HTTP client timeout
-  -m, --mode="reqlog"     Statistics collection mode: reqlog (logs each request) or hist
-                          (stores histogram of completed requests latencies)
-  -o, --output=file.csv   File to save the request log in CSV format (reqlog mode) or a
-                          text file with raw histogram data (hist mode)
-  -i, --interval=250ms    Interval for statistics calculation (reqlog mode)
-      --preallocate=1000  Number of requests in req log to preallocate memory for per
-                          connection (reqlog mode)
-      --method=GET        The HTTP request method (GET, POST, PUT, PATCH or DELETE)
-  -b, --body="{data..."   HTTP request body
-  -h, --header="k:v" ...  HTTP request header(s). You can set more than one header by
-                          repeating this flag.
-      --trust-all         Omit SSL certificate validation
-      --plugin=/to/p.so   Plugin to run Gocannon with
+  -d, --duration=10s      Load test duration.
+  -c, --connections=50    Maximum number of concurrent connections.
+  -t, --timeout=200ms     HTTP client timeout.
+  -m, --mode="reqlog"     Statistics collection mode: reqlog (logs each request)
+                          or hist (stores histogram of completed requests
+                          latencies).
+  -o, --output=file.csv   File to save the request log in CSV format (reqlog
+                          mode) or a text file with raw histogram data (hist
+                          mode).
+  -i, --interval=250ms    Interval for statistics calculation (reqlog mode).
+      --preallocate=1000  Number of requests in req log to preallocate memory
+                          for per connection (reqlog mode).
+      --method=GET        The HTTP request method (GET, POST, PUT, PATCH or
+                          DELETE).
+  -b, --body="{data..."   HTTP request body.
+      --trust-all         Omit SSL certificate validation.
+  -f, --format=default    Load test report format. Either 'default' (verbose),
+                          'json' or 'yaml'. When json or yaml is specified,
+                          apart from the load test results, no additional info
+                          will be written to std out.
+      --plugin=/to/p.so   Plugin to run Gocannon with (path to .so file).
       --version           Show application version.
 
 Args:
-  <target>  HTTP target URL with port (i.e. http://localhost:80/test or https://host:443/x)
+  <target>  HTTP target URL with port (i.e. http://localhost:80/test or
+            https://host:443/x)
 ```
 
 Below is an example of a load test conducted using gocannon against an Express.js server (notice the performance improvement over time under sustained load):

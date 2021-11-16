@@ -122,6 +122,10 @@ func (r *requestLogCollector) GetLatencyAvg() float64 {
 	return r.results.Summary.LatencyAVG
 }
 
+func (r *requestLogCollector) GetLatencyPercentiles() []int64 {
+	return r.results.Summary.LatencyPercentiles
+}
+
 func (r *requestLogCollector) saveResCodes() {
 	for _, connLog := range *r.reqLog {
 		for _, req := range connLog {

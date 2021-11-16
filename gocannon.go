@@ -14,46 +14,59 @@ func exitWithError(err error) {
 	os.Exit(1)
 }
 
-func runGocannon(cfg common.Config) error {
-	var gocannonPlugin common.GocannonPlugin
+// Gocannon represents a single gocannon instance with a config defined upon its creation.
+type Gocannon struct {
+	cfg    common.Config
+	client *fasthttp.HostClient
+	stats  statsCollector
+	plugin common.GocannonPlugin
+}
+
+// NewGocannon creates a new gocannon instance using a provided config.
+func NewGocannon(cfg common.Config) (Gocannon, error) {
 	var err error
 
-	if *config.Format == "default" {
-		printHeader(config)
-	}
+	gocannon := Gocannon{cfg: cfg}
 
 	if *cfg.Plugin != "" {
-		gocannonPlugin, err = loadPlugin(*cfg.Plugin, *cfg.Format != "default")
+		gocannonPlugin, err := loadPlugin(*cfg.Plugin, *cfg.Format != "default")
 		if err != nil {
-			return err
+			return gocannon, err
 		}
+		gocannon.plugin = gocannonPlugin
 		gocannonPlugin.Startup(cfg)
 	}
 
 	c, err := newHTTPClient(*cfg.Target, *cfg.Timeout, *cfg.Connections, *cfg.TrustAll, true)
 
 	if err != nil {
-		return err
+		return gocannon, err
 	}
 
-	n := *cfg.Connections
+	gocannon.client = c
 
-	stats, scErr := newStatsCollector(*cfg.Mode, n, *cfg.Preallocate, *cfg.Timeout)
+	stats, scErr := newStatsCollector(*cfg.Mode, *cfg.Connections, *cfg.Preallocate, *cfg.Timeout)
+
+	gocannon.stats = stats
 
 	if scErr != nil {
-		return scErr
+		return gocannon, scErr
 	}
+
+	return gocannon, nil
+}
+
+// Run performs the load test.
+func (g Gocannon) Run() (TestResults, error) {
+
+	n := *g.cfg.Connections
 
 	var wg sync.WaitGroup
 
 	wg.Add(n)
 
 	start := makeTimestamp()
-	stop := start + cfg.Duration.Nanoseconds()
-
-	if *cfg.Format == "default" {
-		fmt.Printf("gocannon goes brr...\n")
-	}
+	stop := start + g.cfg.Duration.Nanoseconds()
 
 	for connectionID := 0; connectionID < n; connectionID++ {
 		go func(c *fasthttp.HostClient, cid int, p common.GocannonPlugin) {
@@ -65,43 +78,25 @@ func runGocannon(cfg common.Config) error {
 					plugTarget, plugMethod, plugBody, plugHeaders := p.BeforeRequest(cid)
 					code, start, end = performRequest(c, plugTarget, plugMethod, plugBody, plugHeaders)
 				} else {
-					code, start, end = performRequest(c, *cfg.Target, *cfg.Method, *cfg.Body, *cfg.Headers)
+					code, start, end = performRequest(c, *g.cfg.Target, *g.cfg.Method, *g.cfg.Body, *g.cfg.Headers)
 				}
 				if end >= stop {
 					break
 				}
 
-				stats.RecordResponse(cid, code, start, end)
+				g.stats.RecordResponse(cid, code, start, end)
 			}
 			wg.Done()
-		}(c, connectionID, gocannonPlugin)
+		}(g.client, connectionID, g.plugin)
 	}
 
 	wg.Wait()
 
-	err = stats.CalculateStats(start, stop, *cfg.Interval, *cfg.OutputFile)
+	err := g.stats.CalculateStats(start, stop, *g.cfg.Interval, *g.cfg.OutputFile)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if *cfg.Format == "default" {
-		printSummary(stats)
-	}
-	stats.PrintReport(*cfg.Format)
-
-	return nil
-}
-
-func main() {
-	err := parseArgs()
-	if err != nil {
-		exitWithError(err)
-	}
-
-	err = runGocannon(config)
-
-	if err != nil {
-		exitWithError(err)
-	}
+	return g.stats, err
 }

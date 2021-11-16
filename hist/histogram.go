@@ -141,3 +141,11 @@ func (h *requestHist) GetReqPerSec() float64 {
 func (h *requestHist) GetLatencyAvg() float64 {
 	return h.results.LatencyAvg * 1000.0
 }
+
+func (h *requestHist) GetLatencyPercentiles() []int64 {
+	asNanoseconds := make([]int64, len(h.results.LatencyPercentiles))
+	for i, p := range h.results.LatencyPercentiles {
+		asNanoseconds[i] = p * 1000
+	}
+	return asNanoseconds
+}

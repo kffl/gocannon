@@ -126,7 +126,15 @@ func TestGocannonDefaultValues(t *testing.T) {
 		Target:      &target,
 	}
 
-	assert.Nil(t, runGocannon(cfg), "the load test should be completed without errors")
+	g, creationErr := NewGocannon(cfg)
+
+	assert.Nil(t, creationErr, "gocannon instance should be created without errors")
+
+	if creationErr == nil {
+		results, execErr := g.Run()
+		assert.Nil(t, execErr, "the load test should be completed without errors")
+		assert.Greater(t, results.GetReqPerSec(), 100.0, "a throughput of at least 100 req/s should be achieved")
+	}
 }
 
 func TestGocanonWithPlugin(t *testing.T) {
@@ -167,5 +175,16 @@ func TestGocanonWithPlugin(t *testing.T) {
 		Target:      &target,
 	}
 
-	assert.Nil(t, runGocannon(cfg), "the load test should be completed without errors")
+	g, creationErr := NewGocannon(cfg)
+
+	assert.Nil(t, creationErr, "gocannon instance with a plugin should be created without errors")
+
+	if creationErr == nil {
+		results, execErr := g.Run()
+
+		assert.Nil(t, execErr, "the load test should be completed without errors")
+
+		assert.Greater(t, results.GetReqPerSec(), 100.0, "a throughput of at least 100 req/s should be achieved")
+	}
+
 }

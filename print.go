@@ -7,7 +7,7 @@ import (
 )
 
 func printHeader(cfg common.Config) {
-	fmt.Printf("Attacking %s with %d connections over %s\n", *cfg.Target, *cfg.Connections, *cfg.Duration)
+	fmt.Printf("Attacking %s with %d connections over %s using %d CPUs\n", *cfg.Target, *cfg.Connections, *cfg.Duration, *cfg.CPUs)
 }
 
 func printSummary(s TestResults) {

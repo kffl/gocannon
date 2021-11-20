@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+	"runtime"
+	"strconv"
 
 	"github.com/kffl/gocannon/common"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -44,6 +46,9 @@ func parseArgs() (common.Config, error) {
 			PlaceHolder("file.csv").
 			Short('o').
 			String(),
+		CPUs: app.Flag("cpus", "Maximum number of logical CPUs").
+			Default(strconv.Itoa(runtime.NumCPU())).
+			Int(),
 		Interval: app.Flag("interval", "Interval for statistics calculation (reqlog mode).").
 			Default("250ms").
 			Short('i').

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"runtime"
 
 	"github.com/kffl/gocannon/common"
 	"github.com/valyala/fasthttp"
@@ -60,6 +61,7 @@ func NewGocannon(cfg common.Config) (Gocannon, error) {
 func (g Gocannon) Run() (TestResults, error) {
 
 	n := *g.cfg.Connections
+	runtime.GOMAXPROCS(*g.cfg.CPUs)
 
 	var wg sync.WaitGroup
 

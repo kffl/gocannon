@@ -61,7 +61,10 @@ func NewGocannon(cfg common.Config) (Gocannon, error) {
 func (g Gocannon) Run() (TestResults, error) {
 
 	n := *g.cfg.Connections
-	runtime.GOMAXPROCS(*g.cfg.CPUs)
+
+	if g.cfg.CPUs != nil {
+		runtime.GOMAXPROCS(*g.cfg.CPUs)
+	}
 
 	var wg sync.WaitGroup
 

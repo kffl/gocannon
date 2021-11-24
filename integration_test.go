@@ -114,7 +114,7 @@ func TestGocannonDefaultValues(t *testing.T) {
 	cfg := common.Config{
 		Duration:    &duration,
 		Connections: &connections,
-		CPUs:				 &cpus,
+		CPUs:        &cpus,
 		Timeout:     &timeout,
 		Mode:        &mode,
 		OutputFile:  &outputFile,
@@ -165,7 +165,7 @@ func TestGocanonWithPlugin(t *testing.T) {
 	cfg := common.Config{
 		Duration:    &duration,
 		Connections: &connections,
-		CPUs:				 &cpus,
+		CPUs:        &cpus,
 		Timeout:     &timeout,
 		Mode:        &mode,
 		OutputFile:  &outputFile,

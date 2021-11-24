@@ -1,12 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+)
 
 func main() {
 	config, err := parseArgs()
 	if err != nil {
 		exitWithError(err)
 	}
+
+	runtime.GOMAXPROCS(*config.CPUs)
 
 	if *config.Format == "default" {
 		printHeader(config)

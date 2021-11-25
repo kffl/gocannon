@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/kffl/gocannon/common"
 )
 
 func printHeader(cfg common.Config) {
-	fmt.Printf("Attacking %s with %d connections over %s\n", *cfg.Target, *cfg.Connections, *cfg.Duration)
+	fmt.Printf("Attacking %s with %d connections over %s using %d CPUs\n", *cfg.Target, *cfg.Connections, *cfg.Duration, runtime.GOMAXPROCS(0))
 }
 
 func printSummary(s TestResults) {

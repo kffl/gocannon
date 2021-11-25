@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"os/exec"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -96,6 +97,7 @@ func TestGocannon(t *testing.T) {
 func TestGocannonDefaultValues(t *testing.T) {
 	duration := time.Second * 1
 	connections := 50
+	cpus := runtime.NumCPU()
 	timeout := time.Millisecond * 200
 	mode := "reqlog"
 	outputFile := ""
@@ -112,6 +114,7 @@ func TestGocannonDefaultValues(t *testing.T) {
 	cfg := common.Config{
 		Duration:    &duration,
 		Connections: &connections,
+		CPUs:        &cpus,
 		Timeout:     &timeout,
 		Mode:        &mode,
 		OutputFile:  &outputFile,
@@ -145,6 +148,7 @@ func TestGocanonWithPlugin(t *testing.T) {
 
 	duration := time.Second * 1
 	connections := 50
+	cpus := runtime.NumCPU()
 	timeout := time.Millisecond * 200
 	mode := "hist"
 	outputFile := ""
@@ -161,6 +165,7 @@ func TestGocanonWithPlugin(t *testing.T) {
 	cfg := common.Config{
 		Duration:    &duration,
 		Connections: &connections,
+		CPUs:        &cpus,
 		Timeout:     &timeout,
 		Mode:        &mode,
 		OutputFile:  &outputFile,

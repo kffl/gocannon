@@ -11,6 +11,7 @@ type Config struct {
 	OutputFile  *string
 	Interval    *time.Duration
 	Preallocate *int
+	CPUs        *int
 	Method      *string
 	Body        *RawRequestBody
 	Headers     *RequestHeaders

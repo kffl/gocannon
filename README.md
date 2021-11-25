@@ -14,6 +14,9 @@ Flags:
                           --help-man).
   -d, --duration=10s      Load test duration.
   -c, --connections=50    Maximum number of concurrent connections.
+      --cpus              Maximum number of logical CPUs that can be utilised.
+                          Defaults to the number of available CPU threads (or 
+                          the GOMAXPROCS env variable).
   -t, --timeout=200ms     HTTP client timeout.
   -m, --mode="reqlog"     Statistics collection mode: reqlog (logs each request)
                           or hist (stores histogram of completed requests

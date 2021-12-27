@@ -1,8 +1,12 @@
 # :boom: gocannon - HTTP benchmarking tool
 
-[![CI Workflow](https://github.com/kffl/gocannon/workflows/CI/badge.svg)](https://github.com/kffl/gocannon/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/kffl/gocannon)](https://goreportcard.com/report/github.com/kffl/gocannon)
+[![CI Workflow](https://github.com/kffl/gocannon/workflows/CI/badge.svg)](https://github.com/kffl/gocannon/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/kffl/gocannon)](https://goreportcard.com/report/github.com/kffl/gocannon) [![GoDoc](https://godoc.org/github.com/kffl/gocannon?status.svg)](https://godoc.org/github.com/kffl/gocannon)
 
 Gocannon is a lightweight HTTP benchmarking tool, intended to measure changes in backend application performance over time. It keeps a detailed log of each request that is sent, not just the histogram of their latencies.
+
+## Installation
+
+The easiest way to install Gocannon is to download pre-built binaries for your platform that are automatically attached to each [release](https://github.com/kffl/gocannon/releases/). If you wish to build Gocannon from source, clone this repository and run `go build`. Alternatively, you can run Gocannon as a container using `jauderho/gocannon` [image](https://hub.docker.com/r/jauderho/gocannon).
 
 ## Usage
 
@@ -133,6 +137,10 @@ go build -buildmode=plugin -o plugin.so plugin.go
 ```
 
 Once you obtain a shared object (`.so`) file, you can provide a path to it via `--plugin` flag. Bare in mind that a custom plugin `.so` file and the Gocannon binary using it must both be compiled using the same Go version.
+
+### Using Gocannon as a library
+
+You can use Gocannon as a library for performing programmatic load tests. Consult [GoDoc](https://godoc.org/github.com/kffl/gocannon) for API reference and `main.go` for example implementation. Please bare in mind that you cannot reuse a Gocannon instance to perform multiple load tests.
 
 ## Load testing recommendations
 

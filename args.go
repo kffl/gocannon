@@ -66,7 +66,7 @@ func parseArgs() (common.Config, error) {
 		Target: app.Arg("target", "HTTP target URL with port (i.e. http://localhost:80/test or https://host:443/x)").Required().String(),
 	}
 
-	app.Version("1.1.0")
+	app.Version("1.2.1")
 	_, err := app.Parse(os.Args[1:])
 	return config, err
 }

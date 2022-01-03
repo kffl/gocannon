@@ -1,5 +1,9 @@
 # :boom: gocannon - HTTP benchmarking tool
 
+<div align="center">
+  <img alt="Gocannon Logo" src="https://github.com/kffl/gocannon/raw/HEAD/assets/gocannon-logo-horizontal.svg" width="550" height="auto"/>
+</div>
+
 [![CI Workflow](https://github.com/kffl/gocannon/workflows/CI/badge.svg)](https://github.com/kffl/gocannon/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/kffl/gocannon)](https://goreportcard.com/report/github.com/kffl/gocannon) [![GoDoc](https://godoc.org/github.com/kffl/gocannon?status.svg)](https://godoc.org/github.com/kffl/gocannon)
 
 Gocannon is a lightweight HTTP benchmarking tool, intended to measure changes in backend application performance over time. It keeps a detailed log of each request that is sent, not just the histogram of their latencies.
@@ -147,3 +151,9 @@ You can use Gocannon as a library for performing programmatic load tests. Consul
 -   **Killing non-essential background processes**: Since the activity of background processes running alongside the SUT may introduce anomalies in the obtained experiment results, it is advised to disable non-essential services for the load test duration. Additionally, when conducting a load test against a SUT running on the same machine as gocannon, you may want to assign the SUT and gocannon processes to separate sets of logical cores (i.e. via `taskset`) and update the `GOMAXPROCS` env variable accordingly (so as to reflect the number of cores available to gocannon).
 -   **Disabling Turbo Boost, EIST and ensuring a constant CPU clock**: Changes of the CPU clock over the duration of the load test may introduce inconsistencies in the collected metrics, especially given that the detection of a suitable workload after the test start and subsequent increase of the CPU clock may cause observable improvement in application throughput shortly after the start of the load test. If your goal is to measure how the application performance changes over time under sustained load, you may want to disable Turbo Boost and EIST (or their equivalents in your system) as well as ensure that the CPU clock is not being reduced at idle (i.e. by setting the CPU mode to performance via the `cpupower` linux package).
 -   **Repeating the test runs**: Performing multiple test runs improves the statistical significance of the obtained results and minimizes impact of potential one-off anomalies (i.e. background process activity during the load test) in the obtained data on the overall result. When combining data from multiple test runs, remember not to average the percentiles. Instead, place the obtained request latencies of all runs in a single dataset and calculate the desired percentiles on that dataset.
+
+## License
+
+Copyright Paweł Kuffel 2021-2022, licensed under Apache 2.0 License.
+
+The Gocannon logo contains the *Go Gopher* mascot which was originally designed by Renee French (http://reneefrench.blogspot.com/) and licensed under Creative Commons 3.0 Attributions license.

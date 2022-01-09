@@ -56,7 +56,7 @@ func parseArgs() (common.Config, error) {
 			Int(),
 		Method:   app.Flag("method", "The HTTP request method (GET, POST, PUT, PATCH or DELETE).").Default("GET").Enum("GET", "POST", "PUT", "PATCH", "DELETE"),
 		Body:     parseRequestBody(app.Flag("body", "HTTP request body.").Short('b').PlaceHolder("\"{data...\"")),
-		Headers:  parseRequestHeaders(kingpin.Flag("header", "HTTP request header(s). You can set more than one header by repeating this flag.").Short('h').PlaceHolder("\"k:v\"")),
+		Headers:  parseRequestHeaders(app.Flag("header", "HTTP request header(s). You can set more than one header by repeating this flag.").Short('h').PlaceHolder("\"k:v\"")),
 		TrustAll: app.Flag("trust-all", "Omit SSL certificate validation.").Bool(),
 		Format: app.Flag("format", "Load test report format. Either 'default' (verbose), 'json' or 'yaml'. When json or yaml is specified, apart from the load test results, no additional info will be written to std out.").
 			Short('f').

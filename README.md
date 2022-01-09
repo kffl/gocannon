@@ -38,6 +38,8 @@ Flags:
       --method=GET        The HTTP request method (GET, POST, PUT, PATCH or
                           DELETE).
   -b, --body="{data..."   HTTP request body.
+  -h, --header="k:v" ...  HTTP request header(s). You can set more than one
+                          header by repeating this flag.
       --trust-all         Omit SSL certificate validation.
   -f, --format=default    Load test report format. Either 'default' (verbose),
                           'json' or 'yaml'. When json or yaml is specified,

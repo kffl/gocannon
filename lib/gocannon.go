@@ -1,18 +1,11 @@
-package main
+package lib
 
 import (
-	"fmt"
-	"os"
 	"sync"
 
 	"github.com/kffl/gocannon/common"
 	"github.com/valyala/fasthttp"
 )
-
-func exitWithError(err error) {
-	fmt.Fprintf(os.Stderr, "error: %v\n", err)
-	os.Exit(1)
-}
 
 // Gocannon represents a single gocannon instance with a config defined upon its creation.
 type Gocannon struct {
@@ -76,7 +69,13 @@ func (g Gocannon) Run() (TestResults, error) {
 				var end int64
 				if p != nil {
 					plugTarget, plugMethod, plugBody, plugHeaders := p.BeforeRequest(cid)
-					code, start, end = performRequest(c, plugTarget, plugMethod, plugBody, plugHeaders)
+					code, start, end = performRequest(
+						c,
+						plugTarget,
+						plugMethod,
+						plugBody,
+						plugHeaders,
+					)
 				} else {
 					code, start, end = performRequest(c, *g.cfg.Target, *g.cfg.Method, *g.cfg.Body, *g.cfg.Headers)
 				}

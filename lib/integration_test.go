@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"math"
@@ -136,13 +136,19 @@ func TestGocannonDefaultValues(t *testing.T) {
 	if creationErr == nil {
 		results, execErr := g.Run()
 		assert.Nil(t, execErr, "the load test should be completed without errors")
-		assert.Greater(t, results.GetReqPerSec(), 100.0, "a throughput of at least 100 req/s should be achieved")
+		assert.Greater(
+			t,
+			results.GetReqPerSec(),
+			100.0,
+			"a throughput of at least 100 req/s should be achieved",
+		)
 	}
 }
 
 func TestGocanonWithPlugin(t *testing.T) {
 
-	err := exec.Command("go", "build", "-race", "-buildmode=plugin", "-o", "_example_plugin/plugin.so", "_example_plugin/plugin.go").Run()
+	err := exec.Command("go", "build", "-race", "-buildmode=plugin", "-o", "../_example_plugin/plugin.so", "../_example_plugin/plugin.go").
+		Run()
 
 	assert.Nil(t, err, "the plugin should compile without an error")
 
@@ -159,7 +165,7 @@ func TestGocanonWithPlugin(t *testing.T) {
 	header := common.RequestHeaders{}
 	trustAll := true
 	format := "json"
-	plugin := "_example_plugin/plugin.so"
+	plugin := "../_example_plugin/plugin.so"
 	target := "http://localhost:3000/hello"
 
 	cfg := common.Config{
@@ -189,7 +195,12 @@ func TestGocanonWithPlugin(t *testing.T) {
 
 		assert.Nil(t, execErr, "the load test should be completed without errors")
 
-		assert.Greater(t, results.GetReqPerSec(), 100.0, "a throughput of at least 100 req/s should be achieved")
+		assert.Greater(
+			t,
+			results.GetReqPerSec(),
+			100.0,
+			"a throughput of at least 100 req/s should be achieved",
+		)
 	}
 
 }

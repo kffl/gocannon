@@ -44,6 +44,10 @@ func parseArgs() (common.Config, error) {
 			PlaceHolder("file.csv").
 			Short('o').
 			String(),
+		Proxy: app.Flag("proxy", "Proxy to use (proto://login:pass@host:port).").
+			PlaceHolder("address").
+			Short('p').
+			String(),
 		CPUs: app.Flag("cpus", "Maximum number of logical CPUs that can be utilised. Defaults to the number of available CPU threads (or the GOMAXPROCS env variable).").
 			Default("0").
 			Int(),

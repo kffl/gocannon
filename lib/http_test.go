@@ -7,13 +7,14 @@ import (
 
 	"github.com/kffl/gocannon/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewHTTPClientWrongURL(t *testing.T) {
 
-	_, err1 := newHTTPClient("XYZthisisawrongurl123", time.Millisecond*200, 10, true, false)
-	_, err2 := newHTTPClient("ldap://something/", time.Millisecond*200, 10, true, false)
-	_, err3 := newHTTPClient("http://localhost/", time.Millisecond*200, 10, true, false)
+	_, err1 := newHTTPClient("XYZthisisawrongurl123", time.Millisecond*200, 10, true, false, nil)
+	_, err2 := newHTTPClient("ldap://something/", time.Millisecond*200, 10, true, false, nil)
+	_, err3 := newHTTPClient("http://localhost/", time.Millisecond*200, 10, true, false, nil)
 
 	assert.ErrorIs(t, err1, ErrWrongTarget, "target URL should be detected as invalid")
 	assert.ErrorIs(t, err2, ErrUnsupportedProtocol, "target URL should be detected as unsupported (other than http and https)")
@@ -24,8 +25,8 @@ func TestNewHTTPClientCorrectUrl(t *testing.T) {
 	timeout := time.Millisecond * 200
 	maxConnections := 123
 
-	c, err := newHTTPClient("http://localhost:3000/", timeout, maxConnections, true, true)
-	c2, err2 := newHTTPClient("https://localhost:443/", timeout, maxConnections, false, false)
+	c, err := newHTTPClient("http://localhost:3000/", timeout, maxConnections, true, true, nil)
+	c2, err2 := newHTTPClient("https://localhost:443/", timeout, maxConnections, false, false, nil)
 
 	assert.Nil(t, err, "correct http target")
 	assert.Equal(t, "localhost:3000", c.Addr)
@@ -47,7 +48,7 @@ func TestNewHTTPClientCorrectUrl(t *testing.T) {
 func TestPerformRequest(t *testing.T) {
 	timeout := time.Millisecond * 100
 
-	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10, true, false)
+	c, _ := newHTTPClient("http://localhost:3000/", timeout, 10, true, false, nil)
 	r := common.RequestHeaders{}
 	customHeader := common.RequestHeaders{common.RequestHeader{Key: "Custom-Header", Value: "gocannon"}}
 
@@ -70,7 +71,7 @@ func TestPerformRequest(t *testing.T) {
 func TestPerformRequestHTTPS(t *testing.T) {
 	timeout := time.Second * 3
 
-	c, _ := newHTTPClient("https://dev.kuffel.io:443/", timeout, 1, false, true)
+	c, _ := newHTTPClient("https://dev.kuffel.io:443/", timeout, 1, false, true, nil)
 	r := common.RequestHeaders{}
 
 	codeOk, _, _ := performRequest(c, "https://dev.kuffel.io:443/", "GET", []byte(""), r)
@@ -82,8 +83,8 @@ func TestPerformRequestHTTPSInvalidCert(t *testing.T) {
 	timeout := time.Second * 3
 	targetBadCert := "https://self-signed.badssl.com:443/"
 
-	trustingClient, _ := newHTTPClient(targetBadCert, timeout, 1, true, false)
-	regularClient, _ := newHTTPClient(targetBadCert, timeout, 1, false, false)
+	trustingClient, _ := newHTTPClient(targetBadCert, timeout, 1, true, false, nil)
+	regularClient, _ := newHTTPClient(targetBadCert, timeout, 1, false, false, nil)
 	r := common.RequestHeaders{}
 
 	codeTrusting, _, _ := performRequest(trustingClient, targetBadCert, "GET", []byte(""), r)
@@ -91,4 +92,28 @@ func TestPerformRequestHTTPSInvalidCert(t *testing.T) {
 
 	assert.Equal(t, 200, codeTrusting)
 	assert.Equal(t, 0, codeRegular)
+}
+
+func TestNewDialFunc(t *testing.T) {
+	t.Run("NoProxy", func(t *testing.T) {
+		d := newDialFunc(0, nil)
+		require.NotNil(t, d)
+	})
+	t.Run("HttpProxy", func(t *testing.T) {
+		p := "hTTP://admin:admin@localhost:8000"
+		d := newDialFunc(0, &p)
+		require.NotNil(t, d)
+	})
+	t.Run("SocksProxy", func(t *testing.T) {
+		p := "socks5://admin:admin@localhost:8000"
+		d := newDialFunc(0, &p)
+		require.NotNil(t, d)
+	})
+	t.Run("InvalidProxy", func(t *testing.T) {
+		require.Panics(t, func() {
+			p := "foo://bar"
+			d := newDialFunc(0, &p)
+			require.Nil(t, d)
+		})
+	})
 }

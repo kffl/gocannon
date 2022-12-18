@@ -19,4 +19,5 @@ type Config struct {
 	Format      *string
 	Plugin      *string
 	Target      *string
+	Proxy       *string
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/kffl/gocannon/common"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
 var (
@@ -39,8 +40,32 @@ func parseTarget(target string) (scheme string, host string, err error) {
 	return u.Scheme, u.Host, nil
 }
 
-func dialHost(host string, timeout time.Duration) error {
-	conn, err := fasthttp.DialTimeout(host, timeout)
+func newDialFunc(timeout time.Duration, proxy *string) fasthttp.DialFunc {
+	if proxy == nil || *proxy == "" {
+		return func(addr string) (net.Conn, error) {
+			return fasthttp.DialTimeout(addr, timeout)
+		}
+	}
+
+	l := strings.ToLower(*proxy)
+	switch {
+
+	case strings.HasPrefix(l, "http://"):
+		addr := *proxy
+		addr = addr[7:] // Strip `http://`.
+
+		return fasthttpproxy.FasthttpHTTPDialerTimeout(addr, timeout)
+
+	case strings.HasPrefix(l, "socks5://"):
+		return fasthttpproxy.FasthttpSocksDialer(*proxy)
+
+	default:
+		panic("unsupported proxy: " + *proxy)
+	}
+}
+
+func dialHost(host string, timeout time.Duration, proxy *string) error {
+	conn, err := newDialFunc(timeout, proxy)(host)
 	if err != nil {
 		return fmt.Errorf("dialing host failed (%w)", err)
 	}
@@ -54,6 +79,7 @@ func newHTTPClient(
 	connections int,
 	trustAll bool,
 	checkHost bool,
+	proxy *string,
 ) (*fasthttp.HostClient, error) {
 	scheme, host, err := parseTarget(target)
 	if err != nil {
@@ -65,16 +91,14 @@ func newHTTPClient(
 		ReadTimeout:                   timeout,
 		WriteTimeout:                  timeout,
 		DisableHeaderNamesNormalizing: true,
-		Dial: func(addr string) (net.Conn, error) {
-			return fasthttp.DialTimeout(addr, timeout)
-		},
-		IsTLS: scheme == "https",
+		Dial:                          newDialFunc(timeout, proxy),
+		IsTLS:                         scheme == "https",
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: trustAll,
 		},
 	}
 	if checkHost {
-		err = dialHost(host, timeout)
+		err = dialHost(host, timeout, proxy)
 		if err != nil {
 			return nil, err
 		}

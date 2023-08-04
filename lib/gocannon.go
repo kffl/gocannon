@@ -15,19 +15,35 @@ type Gocannon struct {
 	plugin common.GocannonPlugin
 }
 
+// Option updates a Gocannon
+type Option func(*Gocannon)
+
+// WithPlugin defines the plugin to be used by Gocannon
+func WithPlugin(plugin common.GocannonPlugin) Option {
+	return func(gc *Gocannon) {
+		gc.plugin = plugin
+	}
+}
+
 // NewGocannon creates a new gocannon instance using a provided config.
-func NewGocannon(cfg common.Config) (Gocannon, error) {
+func NewGocannon(cfg common.Config, opts ...Option) (Gocannon, error) {
 	var err error
 
 	gocannon := Gocannon{cfg: cfg}
 
-	if *cfg.Plugin != "" {
+	for _, o := range opts {
+		o(&gocannon)
+	}
+
+	if gocannon.plugin == nil && *cfg.Plugin != "" {
 		gocannonPlugin, err := loadPlugin(*cfg.Plugin, *cfg.Format != "default")
 		if err != nil {
 			return gocannon, err
 		}
 		gocannon.plugin = gocannonPlugin
-		gocannonPlugin.Startup(cfg)
+	}
+	if gocannon.plugin != nil {
+		gocannon.plugin.Startup(cfg)
 	}
 
 	c, err := newHTTPClient(*cfg.Target, *cfg.Timeout, *cfg.Connections, *cfg.TrustAll, true)

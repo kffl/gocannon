@@ -147,6 +147,12 @@ func TestGocannonDefaultValues(t *testing.T) {
 
 func TestGocanonWithPlugin(t *testing.T) {
 
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		t.SkipNow()
+	} else if runtime.GOOS == "windows" {
+		t.SkipNow()
+	}
+
 	err := exec.Command("go", "build", "-race", "-buildmode=plugin", "-o", "../_example_plugin/plugin.so", "../_example_plugin/plugin.go").
 		Run()
 
@@ -187,6 +193,87 @@ func TestGocanonWithPlugin(t *testing.T) {
 	}
 
 	g, creationErr := NewGocannon(cfg)
+
+	assert.Nil(t, creationErr, "gocannon instance with a plugin should be created without errors")
+
+	if creationErr == nil {
+		results, execErr := g.Run()
+
+		assert.Nil(t, execErr, "the load test should be completed without errors")
+
+		assert.Greater(
+			t,
+			results.GetReqPerSec(),
+			100.0,
+			"a throughput of at least 100 req/s should be achieved",
+		)
+	}
+
+}
+
+type TestLibraryPlugin struct {
+	cfg                 common.Config
+	StartupCalled       bool
+	BeforeRequestCalled bool
+	GetNameCalled       bool
+}
+
+func (p *TestLibraryPlugin) Startup(cfg common.Config) {
+	p.cfg = cfg
+	p.StartupCalled = true
+}
+
+func (p *TestLibraryPlugin) BeforeRequest(cid int) (target string, method string, body common.RawRequestBody, headers common.RequestHeaders) {
+	headers = *p.cfg.Headers
+	method = *p.cfg.Method
+	body = *p.cfg.Body
+	target = *p.cfg.Target
+	method = *p.cfg.Method
+	return
+}
+
+func (p *TestLibraryPlugin) GetName() string {
+	return "TestLibraryPlugin"
+}
+
+func TestGocanonWithLibraryPlugin(t *testing.T) {
+	duration := time.Second * 1
+	connections := 50
+	cpus := runtime.NumCPU()
+	timeout := time.Millisecond * 200
+	mode := "hist"
+	outputFile := ""
+	interval := time.Millisecond * 250
+	preallocate := 1000
+	method := "GET"
+	body := common.RawRequestBody{}
+	header := common.RequestHeaders{}
+	trustAll := true
+	format := "json"
+	plugin := ""
+	target := "http://localhost:3000/hello"
+
+	cfg := common.Config{
+		Duration:    &duration,
+		Connections: &connections,
+		CPUs:        &cpus,
+		Timeout:     &timeout,
+		Mode:        &mode,
+		OutputFile:  &outputFile,
+		Interval:    &interval,
+		Preallocate: &preallocate,
+		Method:      &method,
+		Body:        &body,
+		Headers:     &header,
+		TrustAll:    &trustAll,
+		Format:      &format,
+		Plugin:      &plugin,
+		Target:      &target,
+	}
+
+	libplugin := &TestLibraryPlugin{}
+
+	g, creationErr := NewGocannon(cfg, WithPlugin(libplugin))
 
 	assert.Nil(t, creationErr, "gocannon instance with a plugin should be created without errors")
 
